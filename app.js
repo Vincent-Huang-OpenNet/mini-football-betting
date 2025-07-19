@@ -1014,12 +1014,12 @@ Events.on(engine, "collisionStart", function (event) {
         console.log("🥅 上方球門進球！主隊得分！");
         gameScore.home++; // 主隊得分
         updateScoreDisplay();
-        showGoalAnimation("主隊進球！");
+        showGoalAnimation("Home Team Goal！");
       } else if (goalSensor.label === "lowerGoal") {
         console.log("🥅 下方球門進球！客隊得分！");
         gameScore.away++; // 客隊得分
         updateScoreDisplay();
-        showGoalAnimation("客隊進球！");
+        showGoalAnimation("Away Team Goal！");
       }
     }
   }
