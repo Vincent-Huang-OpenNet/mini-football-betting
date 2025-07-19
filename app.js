@@ -255,7 +255,7 @@ function showGameOverScreen() {
 /**
  * Handle game time up
  */
-function onGameTimeUp() {
+async function onGameTimeUp() {
   console.log("⏰ Game time is up!");
   console.log(
     `📊 Final score: Home ${gameScore.home} - ${gameScore.away} Away`
@@ -267,7 +267,21 @@ function onGameTimeUp() {
   // Stop physics engine
   Engine.clear(engine);
 
-  // Show game over screen
+  // 處理開獎結果
+  const resultData = processBettingResults(gameScore.home, gameScore.away);
+
+  // 更新餘額和投注記錄顯示
+  updateBalance();
+  updateBetSlip();
+
+  console.log(
+    `💰 開獎完成：總獎金 ${resultData.totalWinnings}元，中獎 ${resultData.totalWinningBets} 注`
+  );
+
+  // 顯示開獎結果（等待用戶確認）
+  await showBettingResults(resultData);
+
+  // 顯示遊戲結束畫面
   showGameOverScreen();
 }
 
@@ -877,8 +891,23 @@ function resetGameToInitialState() {
   gameState.isGameStarted = false;
   gameState.isGameActive = false;
 
-  // Restart physics engine
-  Runner.run(Runner.create(), engine);
+  // 清除待開獎的投注記錄（保留已結算的記錄）
+  bettingState.confirmedBets = bettingState.confirmedBets.filter(
+    (betGroup) => betGroup.status === "settled"
+  );
+
+  // 清除選中的投注並更新顯示
+  clearAllBets();
+  updateBetSlip();
+
+  // Stop current runner to prevent multiple runners
+  if (runner) {
+    Runner.stop(runner);
+  }
+
+  // Create new runner and restart physics engine
+  runner = Runner.create();
+  Runner.run(runner, engine);
 
   // Stop football movement
   Body.setVelocity(currentBall, { x: 0, y: 0 });
@@ -1222,24 +1251,68 @@ function updateBetSlip() {
     html += `<div style="background: #f8f9fa; padding: 8px 12px; font-size: 12px; font-weight: 600; color: #666; border-bottom: 1px solid #e0e0e0;">Order Time: ${timeString}</div>`;
 
     let groupTotal = 0;
-    betGroup.bets.forEach((bet) => {
-      const name = BET_NAMES[bet.type][bet.value];
-      const potentialWin = Math.round(bet.amount * bet.odds);
-      groupTotal += bet.amount;
+    let groupWinnings = 0;
 
-      html += `
-        <div class="bet-item">
-          <div class="bet-item-info">
-            <div class="bet-item-name">${name}</div>
-            <div class="bet-item-odds">Odds: ${bet.odds} | Win Amount: ${potentialWin}元</div>
+    if (betGroup.status === "pending") {
+      // 顯示待開獎的投注
+      betGroup.bets.forEach((bet) => {
+        const name = BET_NAMES[bet.type][bet.value];
+        const potentialWin = Math.round(bet.amount * bet.odds);
+        groupTotal += bet.amount;
+
+        html += `
+          <div class="bet-item">
+            <div class="bet-item-info">
+              <div class="bet-item-name">${name}</div>
+              <div class="bet-item-odds">Odds: ${bet.odds} | Win Amount: ${potentialWin}元</div>
+            </div>
+            <div class="bet-item-amount">${bet.amount}元</div>
+            <div style="font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600; background: #fff3cd; color: #856404;">等待開獎</div>
           </div>
-          <div class="bet-item-amount">${bet.amount}元</div>
-          <div style="font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600; background: #fff3cd; color: #856404;">Wait for Result</div>
-        </div>
-      `;
-    });
+        `;
+      });
 
-    html += `<div style="background: #f0f8f0; padding: 8px 12px; text-align: right; font-weight: 600; color: #4a8c4a; font-size: 13px; border-top: 1px solid #e0e0e0;">Total: ${groupTotal}元</div>`;
+      html += `<div style="background: #f0f8f0; padding: 8px 12px; text-align: right; font-weight: 600; color: #4a8c4a; font-size: 13px; border-top: 1px solid #e0e0e0;">投注總額: ${groupTotal}元</div>`;
+    } else if (betGroup.status === "settled" && betGroup.results) {
+      // 顯示已結算的投注
+      betGroup.results.forEach((result) => {
+        groupTotal += result.amount;
+        if (result.isWin) {
+          groupWinnings += result.winAmount;
+        }
+
+        html += `
+          <div class="bet-item">
+            <div class="bet-item-info">
+              <div class="bet-item-name">${result.name}</div>
+              <div class="bet-item-odds">Odds: ${result.odds} | 投注: ${
+          result.amount
+        }元</div>
+            </div>
+            <div class="bet-item-amount">
+              ${result.isWin ? `+${result.winAmount}元` : `${result.amount}元`}
+            </div>
+            <div style="font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600; 
+                        background: ${result.isWin ? "#d4edda" : "#f8d7da"}; 
+                        color: ${result.isWin ? "#155724" : "#721c24"};">
+              ${result.isWin ? "中獎" : "未中"}
+            </div>
+          </div>
+        `;
+      });
+
+      const netResult = groupWinnings - groupTotal;
+      html += `<div style="background: ${
+        netResult >= 0 ? "#d4edda" : "#f8d7da"
+      }; padding: 8px 12px; text-align: right; font-weight: 600; color: ${
+        netResult >= 0 ? "#155724" : "#721c24"
+      }; font-size: 13px; border-top: 1px solid #e0e0e0;">`;
+      html += `投注: ${groupTotal}元 | 獎金: ${groupWinnings}元 | 淨收益: ${
+        netResult >= 0 ? "+" : ""
+      }${netResult}元`;
+      html += `</div>`;
+    }
+
     html += `</div>`;
   });
 
@@ -1255,11 +1328,282 @@ function updateBalance() {
 }
 
 // ========================================
+// 開獎系統
+// ========================================
+
+/**
+ * 計算投注結果
+ * @param {number} homeScore - 主隊得分
+ * @param {number} awayScore - 客隊得分
+ * @returns {object} 各類型投注的結果
+ */
+function calculateBetResults(homeScore, awayScore) {
+  const totalScore = homeScore + awayScore;
+
+  return {
+    result: {
+      home: homeScore > awayScore,
+      draw: homeScore === awayScore,
+      away: awayScore > homeScore,
+    },
+    total: {
+      over: totalScore > 9.5,
+      under: totalScore <= 9.5,
+    },
+    parity: {
+      odd: totalScore % 2 === 1,
+      even: totalScore % 2 === 0,
+    },
+  };
+}
+
+/**
+ * 計算並處理開獎結果
+ * @param {number} homeScore - 主隊得分
+ * @param {number} awayScore - 客隊得分
+ * @returns {object} 開獎結果統計
+ */
+function processBettingResults(homeScore, awayScore) {
+  const results = calculateBetResults(homeScore, awayScore);
+  let totalWinnings = 0;
+  let totalWinningBets = 0;
+  let totalLosingBets = 0;
+
+  // 處理所有待開獎的投注記錄
+  bettingState.confirmedBets.forEach((betGroup) => {
+    if (betGroup.status === "pending") {
+      betGroup.status = "settled";
+      betGroup.results = [];
+
+      betGroup.bets.forEach((bet) => {
+        const isWin = results[bet.type][bet.value];
+        const winAmount = isWin ? Math.round(bet.amount * bet.odds) : 0;
+
+        // 記錄單個投注結果
+        const betResult = {
+          type: bet.type,
+          value: bet.value,
+          amount: bet.amount,
+          odds: bet.odds,
+          isWin: isWin,
+          winAmount: winAmount,
+          name: BET_NAMES[bet.type][bet.value],
+        };
+
+        betGroup.results.push(betResult);
+
+        if (isWin) {
+          totalWinnings += winAmount;
+          totalWinningBets++;
+          // 將獎金加入餘額
+          bettingState.balance += winAmount;
+        } else {
+          totalLosingBets++;
+        }
+      });
+    }
+  });
+
+  return {
+    totalWinnings,
+    totalWinningBets,
+    totalLosingBets,
+    gameResults: {
+      homeScore,
+      awayScore,
+      totalScore: homeScore + awayScore,
+      matchResult:
+        homeScore > awayScore
+          ? "主隊勝"
+          : awayScore > homeScore
+          ? "客隊勝"
+          : "平局",
+      totalResult: homeScore + awayScore > 9.5 ? "大球" : "小球",
+      parityResult: (homeScore + awayScore) % 2 === 1 ? "單" : "雙",
+    },
+  };
+}
+
+/**
+ * 顯示開獎結果
+ * @param {object} resultData - 開獎結果數據
+ */
+function showBettingResults(resultData) {
+  return new Promise((resolve) => {
+    // 創建開獎結果覆蓋層
+    const resultsOverlay = document.createElement("div");
+    resultsOverlay.style.position = "fixed";
+    resultsOverlay.style.top = "0";
+    resultsOverlay.style.left = "0";
+    resultsOverlay.style.width = "100%";
+    resultsOverlay.style.height = "100%";
+    resultsOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+    resultsOverlay.style.zIndex = "1500";
+    resultsOverlay.style.display = "flex";
+    resultsOverlay.style.justifyContent = "center";
+    resultsOverlay.style.alignItems = "center";
+    resultsOverlay.style.fontFamily = "Arial, sans-serif";
+    resultsOverlay.style.color = "white";
+
+    // 創建結果容器
+    const resultsContainer = document.createElement("div");
+    resultsContainer.style.backgroundColor = "white";
+    resultsContainer.style.borderRadius = "12px";
+    resultsContainer.style.padding = "30px";
+    resultsContainer.style.maxWidth = "500px";
+    resultsContainer.style.maxHeight = "80vh";
+    resultsContainer.style.overflowY = "auto";
+    resultsContainer.style.color = "black";
+    resultsContainer.style.textAlign = "center";
+    resultsContainer.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.3)";
+
+    // 標題
+    const title = document.createElement("h2");
+    title.textContent = "🎉 開獎結果";
+    title.style.color = "#4a8c4a";
+    title.style.marginBottom = "20px";
+    title.style.fontSize = "28px";
+
+    // 比賽結果
+    const gameResultsDiv = document.createElement("div");
+    gameResultsDiv.style.backgroundColor = "#f8f9fa";
+    gameResultsDiv.style.padding = "15px";
+    gameResultsDiv.style.borderRadius = "8px";
+    gameResultsDiv.style.marginBottom = "20px";
+    gameResultsDiv.innerHTML = `
+      <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">比賽結果</div>
+      <div style="font-size: 24px; color: #4a8c4a; margin-bottom: 8px;">
+        主隊 ${resultData.gameResults.homeScore} - ${resultData.gameResults.awayScore} 客隊
+      </div>
+      <div style="font-size: 14px; color: #666;">
+        總分: ${resultData.gameResults.totalScore} (${resultData.gameResults.totalResult}) | 
+        ${resultData.gameResults.parityResult} | 
+        ${resultData.gameResults.matchResult}
+      </div>
+    `;
+
+    // 投注結果統計
+    const summaryDiv = document.createElement("div");
+    summaryDiv.style.backgroundColor = "#e8f5e8";
+    summaryDiv.style.padding = "15px";
+    summaryDiv.style.borderRadius = "8px";
+    summaryDiv.style.marginBottom = "20px";
+    summaryDiv.innerHTML = `
+      <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">投注統計</div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+        <span>中獎注數:</span>
+        <span style="color: #4a8c4a; font-weight: bold;">${
+          resultData.totalWinningBets
+        }</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+        <span>未中注數:</span>
+        <span style="color: #dc3545;">${resultData.totalLosingBets}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: #4a8c4a;">
+        <span>總獎金:</span>
+        <span>${resultData.totalWinnings.toLocaleString()}元</span>
+      </div>
+    `;
+
+    // 詳細投注結果
+    const detailsDiv = document.createElement("div");
+    detailsDiv.style.textAlign = "left";
+    detailsDiv.style.marginBottom = "20px";
+
+    if (resultData.totalWinningBets > 0 || resultData.totalLosingBets > 0) {
+      detailsDiv.innerHTML =
+        '<div style="font-size: 16px; font-weight: bold; margin-bottom: 10px; text-align: center;">投注明細</div>';
+
+      bettingState.confirmedBets.forEach((betGroup) => {
+        if (betGroup.status === "settled" && betGroup.results) {
+          betGroup.results.forEach((result) => {
+            const resultDiv = document.createElement("div");
+            resultDiv.style.display = "flex";
+            resultDiv.style.justifyContent = "space-between";
+            resultDiv.style.alignItems = "center";
+            resultDiv.style.padding = "8px";
+            resultDiv.style.marginBottom = "5px";
+            resultDiv.style.backgroundColor = result.isWin
+              ? "#d4edda"
+              : "#f8d7da";
+            resultDiv.style.borderRadius = "4px";
+            resultDiv.style.fontSize = "14px";
+
+            resultDiv.innerHTML = `
+              <div>
+                <div style="font-weight: bold;">${result.name}</div>
+                <div style="font-size: 12px; color: #666;">投注: ${
+                  result.amount
+                }元 | 賠率: ${result.odds}</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-weight: bold; color: ${
+                  result.isWin ? "#4a8c4a" : "#dc3545"
+                };">
+                  ${result.isWin ? "中獎" : "未中"}
+                </div>
+                ${
+                  result.isWin
+                    ? `<div style="color: #4a8c4a;">+${result.winAmount}元</div>`
+                    : ""
+                }
+              </div>
+            `;
+
+            detailsDiv.appendChild(resultDiv);
+          });
+        }
+      });
+    } else {
+      detailsDiv.innerHTML =
+        '<div style="text-align: center; color: #666; font-style: italic;">本局沒有投注記錄</div>';
+    }
+
+    // 確認按鈕
+    const confirmButton = document.createElement("button");
+    confirmButton.textContent = "確認";
+    confirmButton.style.fontSize = "18px";
+    confirmButton.style.padding = "12px 30px";
+    confirmButton.style.backgroundColor = "#4a8c4a";
+    confirmButton.style.color = "white";
+    confirmButton.style.border = "none";
+    confirmButton.style.borderRadius = "6px";
+    confirmButton.style.cursor = "pointer";
+    confirmButton.style.fontWeight = "bold";
+    confirmButton.style.transition = "all 0.3s ease";
+
+    confirmButton.addEventListener("mouseenter", () => {
+      confirmButton.style.backgroundColor = "#3d7a3d";
+    });
+
+    confirmButton.addEventListener("mouseleave", () => {
+      confirmButton.style.backgroundColor = "#4a8c4a";
+    });
+
+    confirmButton.addEventListener("click", () => {
+      document.body.removeChild(resultsOverlay);
+      resolve();
+    });
+
+    // 組裝所有元素
+    resultsContainer.appendChild(title);
+    resultsContainer.appendChild(gameResultsDiv);
+    resultsContainer.appendChild(summaryDiv);
+    resultsContainer.appendChild(detailsDiv);
+    resultsContainer.appendChild(confirmButton);
+
+    resultsOverlay.appendChild(resultsContainer);
+    document.body.appendChild(resultsOverlay);
+  });
+}
+
+// ========================================
 // Game Launch
 // ========================================
 
 // Create Runner instance
-const runner = Runner.create();
+let runner = Runner.create();
 
 // Start renderer and physics engine
 Render.run(render);
