@@ -1,4 +1,4 @@
-/* 全域樣式設定 */
+/* Global Style Settings */
 body {
   margin: 0;
   padding: 10px;
@@ -8,7 +8,7 @@ body {
   min-height: 100vh;
 }
 
-/* 比分板區域樣式 */
+/* Scoreboard Area Styles */
 #scoreboard-container {
   display: flex;
   justify-content: center;
@@ -66,7 +66,7 @@ body {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* 遊戲畫布區域樣式 */
+/* Game Canvas Area Styles */
 #game-container {
   display: flex;
   justify-content: center;
@@ -88,7 +88,7 @@ body {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* 投注區域主容器樣式 */
+/* Main Betting Container Styles */
 #betting-container {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 12px;
@@ -96,7 +96,7 @@ body {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
-/* 投注區塊樣式 */
+/* Betting Section Styles */
 .betting-section {
   margin-bottom: 12px;
   padding: 12px;
@@ -105,7 +105,7 @@ body {
   border: 1px solid rgba(45, 90, 45, 0.1);
 }
 
-/* 投注按鈕樣式 */
+/* Betting Button Styles */
 .betting-options {
   display: flex;
   gap: 6px;
@@ -152,7 +152,7 @@ body {
   opacity: 0.8;
 }
 
-/* 投注單樣式 */
+/* Bet Slip Styles */
 #bet-slip {
   min-height: 80px;
   padding: 10px;
@@ -216,7 +216,7 @@ body {
   background: #c82333;
 }
 
-/* 操作按鈕樣式 */
+/* Action Button Styles */
 .bet-actions {
   display: flex;
   gap: 10px;
@@ -262,7 +262,7 @@ body {
   box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
 }
 
-/* 餘額顯示區域 */
+/* Balance Display Area */
 .balance-section {
   /* margin-top: 12px; */
   padding: 10px 15px;

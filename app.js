@@ -1,61 +1,61 @@
 // ========================================
-// 足球彈跳遊戲 - 主程式
-// 使用 Matter.js 物理引擎建立足球場和投注系統
+// Football Bouncing Game - Main Program
+// Using Matter.js physics engine to build football field and betting system
 // ========================================
 
-// 引入 Matter.js 核心模組
+// Import Matter.js core modules
 const { Engine, Render, World, Bodies, Body, Events, Runner } = Matter;
 
 // ========================================
-// 遊戲參數配置
+// Game Parameters Configuration
 // ========================================
 
-// 足球和畫布尺寸設定
-const BALL_RADIUS = 7.5; // 足球半徑
-const CANVAS_WIDTH = 340; // 畫布寬度（基於FIFA標準比例）
-const CANVAS_HEIGHT = 525; // 畫布高度
-const GOAL_WIDTH = 37; // 球門寬度
+// Football and canvas size settings
+const BALL_RADIUS = 7.5; // Football radius
+const CANVAS_WIDTH = 340; // Canvas width (based on FIFA standard ratio)
+const CANVAS_HEIGHT = 525; // Canvas height
+const GOAL_WIDTH = 37; // Goal width
 
-// 足球場標線尺寸（按比例縮放）
-const PENALTY_AREA_WIDTH = 202; // 禁區寬度
-const PENALTY_AREA_DEPTH = 83; // 禁區深度
-const GOAL_AREA_WIDTH = 92; // 小禁區寬度
-const GOAL_AREA_DEPTH = 28; // 小禁區深度
-const CORNER_ARC_RADIUS = 5; // 角球弧半徑
-const CENTER_CIRCLE_RADIUS = 46; // 中圈半徑
+// Football field line dimensions (scaled proportionally)
+const PENALTY_AREA_WIDTH = 202; // Penalty area width
+const PENALTY_AREA_DEPTH = 83; // Penalty area depth
+const GOAL_AREA_WIDTH = 92; // Goal area width
+const GOAL_AREA_DEPTH = 28; // Goal area depth
+const CORNER_ARC_RADIUS = 5; // Corner arc radius
+const CENTER_CIRCLE_RADIUS = 46; // Center circle radius
 
 // ========================================
-// 遊戲計時器系統
+// Game Timer System
 // ========================================
 
-// 計時器狀態管理
+// Timer state management
 let gameTimer = {
-  minutes: 90, // 遊戲時間（分鐘）
-  seconds: 0, // 秒數
-  isRunning: false, // 計時器是否運行中
-  isPaused: false, // 計時器是否暫停
-  intervalId: null, // 計時器間隔ID
-  totalTimeMs: 45000, // 總遊戲時間（毫秒）45秒 = 90分鐘
-  elapsedTimeMs: 0, // 已經過時間（毫秒）
+  minutes: 90, // Game time (minutes)
+  seconds: 0, // Seconds
+  isRunning: false, // Whether timer is running
+  isPaused: false, // Whether timer is paused
+  intervalId: null, // Timer interval ID
+  totalTimeMs: 45000, // Total game time (milliseconds) 45 seconds = 90 minutes
+  elapsedTimeMs: 0, // Elapsed time (milliseconds)
 };
 
-// 遊戲狀態管理
+// Game state management
 let gameState = {
-  isGameStarted: false, // 遊戲是否已經開始
-  isGameActive: false, // 遊戲是否進行中
+  isGameStarted: false, // Whether game has started
+  isGameActive: false, // Whether game is active
 };
 
-// 比分狀態管理
+// Score state management
 let gameScore = {
-  home: 0, // 主隊得分
-  away: 0, // 客隊得分
+  home: 0, // Home team score
+  away: 0, // Away team score
 };
 
 /**
- * 格式化時間顯示
- * @param {number} minutes - 分鐘數
- * @param {number} seconds - 秒數
- * @returns {string} 格式化的時間字符串
+ * Format time display
+ * @param {number} minutes - Minutes
+ * @param {number} seconds - Seconds
+ * @returns {string} Formatted time string
  */
 function formatTime(minutes, seconds) {
   const paddedMinutes = minutes.toString().padStart(2, "0");
@@ -64,7 +64,7 @@ function formatTime(minutes, seconds) {
 }
 
 /**
- * 更新計時器顯示
+ * Update timer display
  */
 function updateTimerDisplay() {
   const timeElement = document.querySelector(".game-time");
@@ -74,7 +74,7 @@ function updateTimerDisplay() {
 }
 
 /**
- * 計算當前時間基於已過時間
+ * Calculate current time based on elapsed time
  */
 function calculateCurrentTime() {
   const remainingMs = gameTimer.totalTimeMs - gameTimer.elapsedTimeMs;
@@ -85,7 +85,7 @@ function calculateCurrentTime() {
 }
 
 /**
- * 啟動計時器
+ * Start timer
  */
 function startTimer() {
   if (gameTimer.isRunning) return;
@@ -100,7 +100,7 @@ function startTimer() {
 
     gameTimer.elapsedTimeMs = Date.now() - startTime;
 
-    // 檢查是否時間結束
+    // Check if time is up
     if (gameTimer.elapsedTimeMs >= gameTimer.totalTimeMs) {
       gameTimer.elapsedTimeMs = gameTimer.totalTimeMs;
       calculateCurrentTime();
@@ -112,29 +112,29 @@ function startTimer() {
 
     calculateCurrentTime();
     updateTimerDisplay();
-  }, 100); // 每100毫秒更新一次顯示
+  }, 100); // Update display every 100 milliseconds
 
-  console.log("⏰ 計時器啟動");
+  console.log("⏰ Timer started");
 }
 
 /**
- * 暫停計時器
+ * Pause timer
  */
 function pauseTimer() {
   gameTimer.isPaused = true;
-  console.log("⏸️ 計時器暫停");
+  console.log("⏸️ Timer paused");
 }
 
 /**
- * 恢復計時器
+ * Resume timer
  */
 function resumeTimer() {
   gameTimer.isPaused = false;
-  console.log("▶️ 計時器恢復");
+  console.log("▶️ Timer resumed");
 }
 
 /**
- * 停止計時器
+ * Stop timer
  */
 function stopTimer() {
   if (gameTimer.intervalId) {
@@ -143,11 +143,11 @@ function stopTimer() {
   }
   gameTimer.isRunning = false;
   gameTimer.isPaused = false;
-  console.log("⏹️ 計時器停止");
+  console.log("⏹️ Timer stopped");
 }
 
 /**
- * 重置計時器
+ * Reset timer
  */
 function resetTimer() {
   stopTimer();
@@ -155,14 +155,14 @@ function resetTimer() {
   gameTimer.seconds = 0;
   gameTimer.elapsedTimeMs = 0;
   updateTimerDisplay();
-  console.log("🔄 計時器重置");
+  console.log("🔄 Timer reset");
 }
 
 /**
- * 顯示比賽結束畫面
+ * Show game over screen
  */
 function showGameOverScreen() {
-  // 建立遊戲結束覆蓋層
+  // Create game over overlay
   const gameOverOverlay = document.createElement("div");
   gameOverOverlay.style.position = "fixed";
   gameOverOverlay.style.top = "0";
@@ -179,7 +179,7 @@ function showGameOverScreen() {
   gameOverOverlay.style.color = "white";
   gameOverOverlay.style.textAlign = "center";
 
-  // 比賽結束標題
+  // Game over title
   const gameOverTitle = document.createElement("h1");
   gameOverTitle.textContent = "Game Over！";
   gameOverTitle.style.fontSize = "48px";
@@ -187,7 +187,7 @@ function showGameOverScreen() {
   gameOverTitle.style.textShadow = "4px 4px 8px rgba(0, 0, 0, 0.8)";
   gameOverTitle.style.marginBottom = "30px";
 
-  // 最終比分
+  // Final score
   const finalScore = document.createElement("div");
   finalScore.innerHTML = `
     <div style="font-size: 36px; margin-bottom: 20px;">Final Score</div>
@@ -196,7 +196,7 @@ function showGameOverScreen() {
     </div>
   `;
 
-  // 比賽結果
+  // Match result
   const matchResult = document.createElement("div");
   matchResult.style.fontSize = "24px";
   matchResult.style.marginBottom = "40px";
@@ -212,7 +212,7 @@ function showGameOverScreen() {
     matchResult.style.color = "#FFC107";
   }
 
-  // 重新開始按鈕
+  // Restart button
   const restartButton = document.createElement("button");
   restartButton.textContent = "New Game";
   restartButton.style.fontSize = "20px";
@@ -236,41 +236,43 @@ function showGameOverScreen() {
   });
 
   restartButton.addEventListener("click", () => {
-    // 移除遊戲結束畫面
+    // Remove game over screen
     document.body.removeChild(gameOverOverlay);
-    // 重置遊戲
+    // Reset game
     resetGameToInitialState();
   });
 
-  // 組裝元素
+  // Assemble elements
   gameOverOverlay.appendChild(gameOverTitle);
   gameOverOverlay.appendChild(finalScore);
   gameOverOverlay.appendChild(matchResult);
   gameOverOverlay.appendChild(restartButton);
 
-  // 添加到頁面
+  // Add to page
   document.body.appendChild(gameOverOverlay);
 }
 
 /**
- * 遊戲時間結束處理
+ * Handle game time up
  */
 function onGameTimeUp() {
-  console.log("⏰ 比賽時間結束！");
-  console.log(`📊 最終比分: 主隊 ${gameScore.home} - ${gameScore.away} 客隊`);
+  console.log("⏰ Game time is up!");
+  console.log(
+    `📊 Final score: Home ${gameScore.home} - ${gameScore.away} Away`
+  );
 
-  // 設定遊戲狀態為非活躍
+  // Set game state to inactive
   gameState.isGameActive = false;
 
-  // 停止物理引擎
+  // Stop physics engine
   Engine.clear(engine);
 
-  // 顯示比賽結束畫面
+  // Show game over screen
   showGameOverScreen();
 }
 
 /**
- * 更新計分板顯示
+ * Update scoreboard display
  */
 function updateScoreDisplay() {
   const homeScoreElement = document.querySelector(
@@ -289,7 +291,7 @@ function updateScoreDisplay() {
 }
 
 /**
- * 重置比分
+ * Reset score
  */
 function resetScore() {
   gameScore.home = 0;
@@ -298,18 +300,18 @@ function resetScore() {
 }
 
 /**
- * 開始遊戲
+ * Start game
  */
 function startGame() {
   if (gameState.isGameStarted) {
-    console.log("🎮 遊戲已經開始");
+    console.log("🎮 Game already started");
     return;
   }
 
   gameState.isGameStarted = true;
   gameState.isGameActive = true;
 
-  // 設定隨機初始速度
+  // Set random initial velocity
   const velocityOptions = [
     { x: 4.0, y: 8.0 }, // lower
     { x: -4.0, y: 8.0 }, // lower
@@ -329,22 +331,22 @@ function startGame() {
   const randomVelocity = velocityOptions[Math.floor(Math.random() * velocityOptions.length)];
   Body.setVelocity(currentBall, randomVelocity);
 
-  // 啟動計時器
+  // Start timer
   startTimer();
 
-  console.log("🚀 遊戲開始！初始速度:", randomVelocity);
+  console.log("🚀 Game started! Initial velocity:", randomVelocity);
 }
 
 // ========================================
-// 物理引擎初始化
+// Physics Engine Initialization
 // ========================================
 
-// 建立物理引擎並設定重力
+// Create physics engine and set gravity
 const engine = Engine.create();
-engine.world.gravity.x = 0; // 無水平重力
-engine.world.gravity.y = 0; // 無垂直重力
+engine.world.gravity.x = 0; // No horizontal gravity
+engine.world.gravity.y = 0; // No vertical gravity
 
-// 建立畫布渲染器
+// Create canvas renderer
 const canvas = document.getElementById("game-canvas");
 const render = Render.create({
   canvas: canvas,
@@ -360,12 +362,12 @@ const render = Render.create({
 });
 
 // ========================================
-// 足球場邊界建立
+// Football Field Boundary Creation
 // ========================================
 
-// 建立場地邊界牆壁（扣除球門位置）
+// Create field boundary walls (excluding goal positions)
 const walls = [
-  // 上邊界 - 左半部（球門左側）
+  // Upper boundary - left half (left side of goal)
   Bodies.rectangle(
     (CANVAS_WIDTH - GOAL_WIDTH) / 4,
     5,
@@ -373,7 +375,7 @@ const walls = [
     10,
     {
       isStatic: true,
-      restitution: 1.0, // 完全彈性碰撞
+      restitution: 1.0, // Perfectly elastic collision
       friction: 0.0,
       frictionStatic: 0.0,
       frictionAir: 0.0,
@@ -384,7 +386,7 @@ const walls = [
     }
   ),
 
-  // 上邊界 - 右半部（球門右側）
+  // Upper boundary - right half (right side of goal)
   Bodies.rectangle(
     CANVAS_WIDTH - (CANVAS_WIDTH - GOAL_WIDTH) / 4,
     5,
@@ -403,7 +405,7 @@ const walls = [
     }
   ),
 
-  // 下邊界 - 左半部（球門左側）
+  // Lower boundary - left half (left side of goal)
   Bodies.rectangle(
     (CANVAS_WIDTH - GOAL_WIDTH) / 4,
     CANVAS_HEIGHT - 5,
@@ -422,7 +424,7 @@ const walls = [
     }
   ),
 
-  // 下邊界 - 右半部（球門右側）
+  // Lower boundary - right half (right side of goal)
   Bodies.rectangle(
     CANVAS_WIDTH - (CANVAS_WIDTH - GOAL_WIDTH) / 4,
     CANVAS_HEIGHT - 5,
@@ -441,7 +443,7 @@ const walls = [
     }
   ),
 
-  // 左邊界（完整側邊線）
+  // Left boundary (complete sideline)
   Bodies.rectangle(5, CANVAS_HEIGHT / 2, 10, CANVAS_HEIGHT, {
     isStatic: true,
     restitution: 1.0,
@@ -454,7 +456,7 @@ const walls = [
     render: { fillStyle: "#ffffff" },
   }),
 
-  // 右邊界（完整側邊線）
+  // Right boundary (complete sideline)
   Bodies.rectangle(CANVAS_WIDTH - 5, CANVAS_HEIGHT / 2, 10, CANVAS_HEIGHT, {
     isStatic: true,
     restitution: 1.0,
@@ -469,16 +471,16 @@ const walls = [
 ];
 
 // ========================================
-// 足球物件建立
+// Football Object Creation
 // ========================================
 
-// 建立足球物體
+// Create football body
 const ball = Bodies.circle(
-  CANVAS_WIDTH / 2, // 起始位置：場地中心
+  CANVAS_WIDTH / 2, // Starting position: field center
   CANVAS_HEIGHT / 2,
   BALL_RADIUS,
   {
-    restitution: 1.0, // 完全彈性碰撞
+    restitution: 1.0, // Perfectly elastic collision
     friction: 0.0,
     frictionStatic: 0.0,
     frictionAir: 0.0,
@@ -487,29 +489,29 @@ const ball = Bodies.circle(
     angularVelocity: 0.0,
     render: {
       sprite: {
-        texture: "./ball.png", // 足球貼圖
-        xScale: (BALL_RADIUS * 2) / 534, // 縮放比例
+        texture: "./ball.png", // Football texture
+        xScale: (BALL_RADIUS * 2) / 534, // Scale ratio
         yScale: (BALL_RADIUS * 2) / 534,
       },
     },
   }
 );
 
-// 設定足球初始移動速度（遊戲開始前保持靜止）
-// 遊戲開始時才會設定速度
+// Set football initial velocity (stay still before game starts)
+// Velocity will be set when game starts
 
 // ========================================
-// 足球場標線建立
+// Football Field Line Creation
 // ========================================
 
-// 中圈標線
+// Center circle marking
 const centerCircle = Bodies.circle(
   CANVAS_WIDTH / 2,
   CANVAS_HEIGHT / 2,
   CENTER_CIRCLE_RADIUS,
   {
     isStatic: true,
-    isSensor: true, // 不影響物理碰撞
+    isSensor: true, // Does not affect physical collision
     render: {
       fillStyle: "transparent",
       strokeStyle: "#ffffff",
@@ -518,7 +520,7 @@ const centerCircle = Bodies.circle(
   }
 );
 
-// 中線
+// Center line
 const centerLine = Bodies.rectangle(
   CANVAS_WIDTH / 2,
   CANVAS_HEIGHT / 2,
@@ -531,7 +533,7 @@ const centerLine = Bodies.rectangle(
   }
 );
 
-// 禁區標線 - 上方
+// Penalty area markings - upper
 const upperPenaltyAreaTop = Bodies.rectangle(
   CANVAS_WIDTH / 2,
   PENALTY_AREA_DEPTH,
@@ -568,7 +570,7 @@ const upperPenaltyAreaRight = Bodies.rectangle(
   }
 );
 
-// 禁區標線 - 下方
+// Penalty area markings - lower
 const lowerPenaltyAreaBottom = Bodies.rectangle(
   CANVAS_WIDTH / 2,
   CANVAS_HEIGHT - PENALTY_AREA_DEPTH,
@@ -605,7 +607,7 @@ const lowerPenaltyAreaRight = Bodies.rectangle(
   }
 );
 
-// 小禁區標線 - 上方
+// Goal area markings - upper
 const upperGoalAreaTop = Bodies.rectangle(
   CANVAS_WIDTH / 2,
   GOAL_AREA_DEPTH,
@@ -642,7 +644,7 @@ const upperGoalAreaRight = Bodies.rectangle(
   }
 );
 
-// 小禁區標線 - 下方
+// Goal area markings - lower
 const lowerGoalAreaBottom = Bodies.rectangle(
   CANVAS_WIDTH / 2,
   CANVAS_HEIGHT - GOAL_AREA_DEPTH,
@@ -679,7 +681,7 @@ const lowerGoalAreaRight = Bodies.rectangle(
   }
 );
 
-// 角球弧標線
+// Corner arc markings
 const topLeftCornerArc = Bodies.circle(10, 10, CORNER_ARC_RADIUS, {
   isStatic: true,
   isSensor: true,
@@ -736,20 +738,20 @@ const bottomRightCornerArc = Bodies.circle(
 );
 
 // ========================================
-// 球門偵測區域建立
+// Goal Detection Area Creation
 // ========================================
 
-// 上方球門感應區
+// Upper goal sensor area
 const upperGoalSensor = Bodies.rectangle(CANVAS_WIDTH / 2, -5, GOAL_WIDTH, 15, {
   isStatic: true,
   isSensor: true,
   render: {
-    fillStyle: "rgba(0, 255, 0, 0.3)", // 半透明綠色（偵錯用）
+    fillStyle: "rgba(0, 255, 0, 0.3)", // Semi-transparent green (for debugging)
   },
-  label: "upperGoal", // 用於識別的標籤
+  label: "upperGoal", // Label for identification
 });
 
-// 下方球門感應區
+// Lower goal sensor area
 const lowerGoalSensor = Bodies.rectangle(
   CANVAS_WIDTH / 2,
   CANVAS_HEIGHT + 5,
@@ -766,56 +768,56 @@ const lowerGoalSensor = Bodies.rectangle(
 );
 
 // ========================================
-// 物理世界建構
+// Physics World Construction
 // ========================================
 
-// 將所有物體加入物理世界
+// Add all bodies to physics world
 World.add(engine.world, [
-  ...walls, // 邊界牆壁
-  ball, // 足球
-  upperGoalSensor, // 球門感應器
+  ...walls, // Boundary walls
+  ball, // Football
+  upperGoalSensor, // Goal sensors
   lowerGoalSensor,
-  centerCircle, // 場地標線
+  centerCircle, // Field markings
   centerLine,
-  upperPenaltyAreaTop, // 禁區標線
+  upperPenaltyAreaTop, // Penalty area markings
   upperPenaltyAreaLeft,
   upperPenaltyAreaRight,
   lowerPenaltyAreaBottom,
   lowerPenaltyAreaLeft,
   lowerPenaltyAreaRight,
-  upperGoalAreaTop, // 小禁區標線
+  upperGoalAreaTop, // Goal area markings
   upperGoalAreaLeft,
   upperGoalAreaRight,
   lowerGoalAreaBottom,
   lowerGoalAreaLeft,
   lowerGoalAreaRight,
-  topLeftCornerArc, // 角球弧
+  topLeftCornerArc, // Corner arcs
   topRightCornerArc,
   bottomLeftCornerArc,
   bottomRightCornerArc,
 ]);
 
 // ========================================
-// 遊戲重置系統
+// Game Reset System
 // ========================================
 
-// 當前足球物件參考
+// Current football object reference
 let currentBall = ball;
 
 /**
- * 完全重置遊戲到初始狀態
- * 清除所有物體並重新建立足球和物理世界
+ * Completely reset game to initial state
+ * Clear all bodies and recreate football and physics world
  */
 function resetGameToInitialState() {
-  // 清除物理世界
+  // Clear physics world
   World.clear(engine.world);
   Engine.clear(engine);
 
-  // 重設物理引擎參數
+  // Reset physics engine parameters
   engine.world.gravity.x = 0;
   engine.world.gravity.y = 0;
 
-  // 重新建立足球
+  // Recreate football
   currentBall = Bodies.circle(
     CANVAS_WIDTH / 2,
     CANVAS_HEIGHT / 2,
@@ -838,10 +840,10 @@ function resetGameToInitialState() {
     }
   );
 
-  // 初始狀態足球保持靜止，等待遊戲開始
+  // Football stays still in initial state, waiting for game to start
   Body.setVelocity(currentBall, { x: 0, y: 0 });
 
-  // 重新添加所有物體到世界
+  // Re-add all bodies to world
   World.add(engine.world, [
     ...walls,
     currentBall,
@@ -867,35 +869,35 @@ function resetGameToInitialState() {
     bottomRightCornerArc,
   ]);
 
-  // 重置計時器和比分
+  // Reset timer and score
   resetTimer();
   resetScore();
 
-  // 重置遊戲狀態
+  // Reset game state
   gameState.isGameStarted = false;
   gameState.isGameActive = false;
 
-  // 重新啟動物理引擎
+  // Restart physics engine
   Runner.run(Runner.create(), engine);
 
-  // 足球停止移動
+  // Stop football movement
   Body.setVelocity(currentBall, { x: 0, y: 0 });
 
-  console.log("🔄 遊戲已重置到初始狀態");
+  console.log("🔄 Game has been reset to initial state");
 }
 
 // ========================================
-// 進球動畫系統
+// Goal Animation System
 // ========================================
 
 /**
- * 重置足球到中心位置並設定新的隨機速度
+ * Reset football to center position and set new random velocity
  */
 function resetBallToCenter() {
-  // 將足球移動到場地中心
+  // Move football to field center
   Body.setPosition(currentBall, { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 });
 
-  // 設定隨機的初始速度
+  // Set random initial velocity
   const velocityOptions = [
     { x: 4.0, y: 8.0 }, // lower
     { x: -4.0, y: 8.0 }, // lower
@@ -911,23 +913,23 @@ function resetBallToCenter() {
     // { x: -6.0, y: -6.0 }, // upper
   ];
 
-  // 隨機選擇一個速度
+  // Randomly select a velocity
   const randomVelocity =
     velocityOptions[Math.floor(Math.random() * velocityOptions.length)];
   Body.setVelocity(currentBall, randomVelocity);
 
-  console.log("⚽ 足球已重置到中心點，新速度:", randomVelocity);
+  console.log("⚽ Football reset to center, new velocity:", randomVelocity);
 }
 
 /**
- * 顯示進球動畫效果
- * @param {string} message - 顯示的進球訊息
+ * Show goal animation effect
+ * @param {string} message - Goal message to display
  */
 function showGoalAnimation(message) {
-  // 暫停計時器
+  // Pause timer
   pauseTimer();
 
-  // 建立動畫文字元素
+  // Create animation text element
   const goalText = document.createElement("div");
   goalText.textContent = message;
   goalText.style.position = "absolute";
@@ -936,7 +938,7 @@ function showGoalAnimation(message) {
   goalText.style.transform = "translate(-50%, -50%)";
   goalText.style.fontSize = "48px";
   goalText.style.fontWeight = "bold";
-  goalText.style.color = "#FFD700"; // 金色文字
+  goalText.style.color = "#FFD700"; // Gold text
   goalText.style.textShadow = "4px 4px 8px rgba(0, 0, 0, 0.8)";
   goalText.style.zIndex = "1000";
   goalText.style.pointerEvents = "none";
@@ -944,17 +946,17 @@ function showGoalAnimation(message) {
   goalText.style.textAlign = "center";
   goalText.style.whiteSpace = "nowrap";
 
-  // 設定初始動畫狀態
+  // Set initial animation state
   goalText.style.opacity = "0";
   goalText.style.transform = "translate(-50%, -50%) scale(0.5)";
   goalText.style.transition = "all 0.3s ease-out";
 
-  // 將文字加入畫布容器
+  // Add text to canvas container
   const canvasContainer = document.getElementById("game-canvas").parentElement;
   canvasContainer.style.position = "relative";
   canvasContainer.appendChild(goalText);
 
-  // 分階段動畫效果
+  // Staged animation effects
   setTimeout(() => {
     goalText.style.opacity = "1";
     goalText.style.transform = "translate(-50%, -50%) scale(1.2)";
@@ -973,25 +975,25 @@ function showGoalAnimation(message) {
     goalText.style.transform = "translate(-50%, -50%) scale(1.5)";
   }, 1500);
 
-  // 清除動畫元素，重置足球位置，並恢復計時器
+  // Clear animation element, reset football position, and resume timer
   setTimeout(() => {
     if (goalText.parentElement) {
       goalText.parentElement.removeChild(goalText);
     }
 
-    // 重置足球到中心點
+    // Reset football to center
     resetBallToCenter();
 
-    // 恢復計時器，遊戲繼續進行
+    // Resume timer, game continues
     resumeTimer();
   }, 2000);
 }
 
 // ========================================
-// 進球偵測事件處理
+// Goal Detection Event Handling
 // ========================================
 
-// 監聽物體碰撞事件
+// Listen for body collision events
 Events.on(engine, "collisionStart", function (event) {
   const pairs = event.pairs;
 
@@ -999,7 +1001,7 @@ Events.on(engine, "collisionStart", function (event) {
     const pair = pairs[i];
     const { bodyA, bodyB } = pair;
 
-    // 檢查是否為足球與球門感應器的碰撞（只在遊戲進行中才有效）
+    // Check if collision is between football and goal sensor (only valid during active game)
     if (
       gameState.isGameActive &&
       ((bodyA === currentBall &&
@@ -1009,15 +1011,15 @@ Events.on(engine, "collisionStart", function (event) {
     ) {
       const goalSensor = bodyA === currentBall ? bodyB : bodyA;
 
-      // 根據球門位置顯示進球訊息和更新比分
+      // Display goal message and update score based on goal position
       if (goalSensor.label === "upperGoal") {
-        console.log("🥅 上方球門進球！主隊得分！");
-        gameScore.home++; // 主隊得分
+        console.log("🥅 Upper goal scored! Home team scores!");
+        gameScore.home++; // Home team scores
         updateScoreDisplay();
         showGoalAnimation("Home Team Goal！");
       } else if (goalSensor.label === "lowerGoal") {
-        console.log("🥅 下方球門進球！客隊得分！");
-        gameScore.away++; // 客隊得分
+        console.log("🥅 Lower goal scored! Away team scores!");
+        gameScore.away++; // Away team scores
         updateScoreDisplay();
         showGoalAnimation("Away Team Goal！");
       }
@@ -1026,34 +1028,34 @@ Events.on(engine, "collisionStart", function (event) {
 });
 
 // ========================================
-// 足球彩票投注系統
+// Football Betting System
 // ========================================
 
-// 投注系統狀態管理
+// Betting system state management
 let bettingState = {
-  selectedBets: [], // 選中但未確認的投注
-  balance: 10000, // 帳戶餘額
-  confirmedBets: [], // 已確認的投注記錄
+  selectedBets: [], // Selected but unconfirmed bets
+  balance: 10000, // Account balance
+  confirmedBets: [], // Confirmed betting records
 };
 
-// 賠率設定表
+// Odds settings table
 const ODDS_TABLE = {
   result: {
-    home: 1.8, // 主隊勝
-    draw: 3.2, // 平局
-    away: 2.1, // 客隊勝
+    home: 1.8, // Home win
+    draw: 3.2, // Draw
+    away: 2.1, // Away win
   },
   total: {
-    over: 1.9, // 大分
-    under: 1.8, // 小分
+    over: 1.9, // Over
+    under: 1.8, // Under
   },
   parity: {
-    odd: 1.9, // 單數
-    even: 1.9, // 雙數
+    odd: 1.9, // Odd
+    even: 1.9, // Even
   },
 };
 
-// 投注項目中文名稱對照
+// Betting option name mapping
 const BET_NAMES = {
   result: {
     home: "Home",
@@ -1071,28 +1073,28 @@ const BET_NAMES = {
 };
 
 /**
- * 初始化投注系統
- * 綁定所有投注相關的事件監聽器
+ * Initialize betting system
+ * Bind all betting-related event listeners
  */
 function initBettingSystem() {
-  // 綁定投注按鈕點擊事件
+  // Bind betting button click events
   document.querySelectorAll(".bet-btn").forEach((btn) => {
     btn.addEventListener("click", handleBetSelection);
   });
 
-  // 綁定操作按鈕事件
+  // Bind action button events
   document.getElementById("clear-bets").addEventListener("click", clearAllBets);
   document.getElementById("place-bet").addEventListener("click", placeBets);
 
-  // 初始化顯示
+  // Initialize display
   updateBetSlip();
   updateSelectedBets();
   updateBalance();
 }
 
 /**
- * 處理投注選擇邏輯
- * @param {Event} event - 按鈕點擊事件
+ * Handle betting selection logic
+ * @param {Event} event - Button click event
  */
 function handleBetSelection(event) {
   const btn = event.currentTarget;
@@ -1100,33 +1102,33 @@ function handleBetSelection(event) {
   const betValue = btn.dataset.value;
   const odds = ODDS_TABLE[betType][betValue];
 
-  // 檢查是否已有相同類型的投注
+  // Check if there's already a bet of the same type
   const existingBetIndex = bettingState.selectedBets.findIndex(
     (bet) => bet.type === betType
   );
 
   if (existingBetIndex !== -1) {
-    // 如果點擊相同選項則取消選擇
+    // If clicking same option, cancel selection
     if (bettingState.selectedBets[existingBetIndex].value === betValue) {
       bettingState.selectedBets.splice(existingBetIndex, 1);
       btn.classList.remove("selected");
     } else {
-      // 替換為新的選擇
+      // Replace with new selection
       bettingState.selectedBets[existingBetIndex] = {
         type: betType,
         value: betValue,
         odds: odds,
-        amount: 100, // 固定投注金額
+        amount: 100, // Fixed bet amount
       };
 
-      // 更新按鈕選中狀態
+      // Update button selection state
       document
         .querySelectorAll(`[data-type="${betType}"]`)
         .forEach((b) => b.classList.remove("selected"));
       btn.classList.add("selected");
     }
   } else {
-    // 新增投注項目
+    // Add new bet item
     bettingState.selectedBets.push({
       type: betType,
       value: betValue,
@@ -1140,7 +1142,7 @@ function handleBetSelection(event) {
 }
 
 /**
- * 清除所有選中的投注
+ * Clear all selected bets
  */
 function clearAllBets() {
   bettingState.selectedBets = [];
@@ -1151,7 +1153,7 @@ function clearAllBets() {
 }
 
 /**
- * 更新投注按鈕狀態
+ * Update betting button state
  */
 function updateSelectedBets() {
   const placeBetBtn = document.getElementById("place-bet");
@@ -1159,11 +1161,11 @@ function updateSelectedBets() {
 }
 
 /**
- * 確認投注處理
+ * Handle bet confirmation
  */
 function placeBets() {
   if (bettingState.selectedBets.length === 0) {
-    alert("請選擇投注項目！");
+    alert("Please select betting options!");
     return;
   }
 
@@ -1173,31 +1175,31 @@ function placeBets() {
   );
 
   if (totalAmount > bettingState.balance) {
-    alert("餘額不足！");
+    alert("Insufficient balance!");
     return;
   }
 
-  // 扣除投注金額
+  // Deduct bet amount
   bettingState.balance -= totalAmount;
 
-  // 記錄投注
+  // Record bet
   bettingState.confirmedBets.push({
     timestamp: Date.now(),
     bets: [...bettingState.selectedBets],
     status: "pending",
   });
 
-  // 清除選擇並更新顯示
+  // Clear selection and update display
   clearAllBets();
   updateBalance();
   updateBetSlip();
 
-  // 開始遊戲
+  // Start game
   startGame();
 }
 
 /**
- * 更新投注單顯示
+ * Update bet slip display
  */
 function updateBetSlip() {
   const betSlip = document.getElementById("bet-slip");
@@ -1245,7 +1247,7 @@ function updateBetSlip() {
 }
 
 /**
- * 更新餘額顯示
+ * Update balance display
  */
 function updateBalance() {
   document.getElementById("balance").textContent =
@@ -1253,23 +1255,25 @@ function updateBalance() {
 }
 
 // ========================================
-// 遊戲啟動
+// Game Launch
 // ========================================
 
-// 建立 Runner 實例
+// Create Runner instance
 const runner = Runner.create();
 
-// 啟動渲染器和物理引擎
+// Start renderer and physics engine
 Render.run(render);
 Runner.run(runner, engine);
 
-// 頁面載入完成後初始化投注系統
+// Initialize betting system after page load
 document.addEventListener("DOMContentLoaded", function () {
   initBettingSystem();
 
-  // 初始化計時器和比分顯示
+  // Initialize timer and score display
   updateTimerDisplay();
   updateScoreDisplay();
 
-  console.log("📱 遊戲已載入，請選擇投注項目並確認投注開始遊戲");
+  console.log(
+    "📱 Game loaded, please select betting options and confirm to start game"
+  );
 });
