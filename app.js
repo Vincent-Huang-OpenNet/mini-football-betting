@@ -25,6 +25,49 @@ const GOAL_AREA_DEPTH = 28; // Goal area depth
 const CORNER_ARC_RADIUS = 5; // Corner arc radius
 const CENTER_CIRCLE_RADIUS = 46; // Center circle radius
 
+// Football velocity options for random movement
+const VELOCITY_OPTIONS = [
+  // { x: 3.0, y: 7.0 }, // upper
+  // { x: -3.0, y: 7.0 }, // upper
+  // { x: 3.0, y: -7.0 }, // lower
+  // { x: -3.0, y: -7.0 }, // lower
+
+  { x: 9.0, y: 3.0 }, // lower
+  { x: -9.0, y: 3.0 }, // lower
+  { x: 9.0, y: -3.0 }, // upper
+  { x: -9.0, y: -3.0 }, // upper
+
+  { x: 3.0, y: 9.0 }, // upper
+  { x: -3.0, y: 9.0 }, // upper
+  { x: 3.0, y: -9.0 }, // lower
+  { x: -3.0, y: -9.0 }, // lower
+
+  { x: 7.0, y: 5.0 }, // draw
+  { x: -7.0, y: 5.0 }, // draw
+  { x: 7.0, y: -5.0 }, // draw
+  { x: -7.0, y: -5.0 }, // draw
+
+  { x: -5.0, y: 7.0 }, // upper
+  { x: -5.0, y: -7.0 }, // lower
+  { x: 5.0, y: -7.0 }, // lower
+  { x: 5.0, y: 7.0 }, // upper
+
+  { x: 4.0, y: 8.0 }, // lower
+  { x: -4.0, y: 8.0 }, // lower
+  { x: 4.0, y: -8.0 }, // upper
+  { x: -4.0, y: -8.0 }, // upper
+
+  { x: 8.0, y: 4.0 }, // upper
+  { x: -8.0, y: 4.0 }, // upper
+  { x: 8.0, y: -4.0 }, // lower
+  { x: -8.0, y: -4.0 }, // lower
+
+  { x: 6.0, y: 6.0 }, // lower
+  { x: -6.0, y: 6.0 }, // lower
+  { x: 6.0, y: -6.0 }, // upper
+  { x: -6.0, y: -6.0 }, // upper
+];
+
 // ========================================
 // Game Timer System
 // ========================================
@@ -296,24 +339,8 @@ function startGame() {
   gameState.isGameStarted = true;
   gameState.isGameActive = true;
 
-  // Set random initial velocity
-  const velocityOptions = [
-    { x: 4.0, y: 8.0 }, // lower
-    { x: -4.0, y: 8.0 }, // lower
-    { x: 4.0, y: -8.0 }, // upper
-    { x: -4.0, y: -8.0 }, // upper
-    // { x: 8.0, y: 4.0 }, // upper
-    // { x: -8.0, y: 4.0 }, // upper
-    // { x: 8.0, y: -4.0 }, // lower
-    // { x: -8.0, y: -4.0 }, // lower
-    // { x: 6.0, y: 6.0 }, // lower
-    // { x: -6.0, y: 6.0 }, // lower
-    // { x: 6.0, y: -6.0 }, // upper
-    // { x: -6.0, y: -6.0 }, // upper
-  ];
-
   // prettier-ignore
-  const randomVelocity = velocityOptions[Math.floor(Math.random() * velocityOptions.length)];
+  const randomVelocity = VELOCITY_OPTIONS[Math.floor(Math.random() * VELOCITY_OPTIONS.length)];
   Body.setVelocity(currentBall, randomVelocity);
 
   // Start timer
@@ -893,25 +920,9 @@ function resetBallToCenter() {
   // Move football to field center
   Body.setPosition(currentBall, { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 });
 
-  // Set random initial velocity
-  const velocityOptions = [
-    { x: 4.0, y: 8.0 }, // lower
-    { x: -4.0, y: 8.0 }, // lower
-    { x: 4.0, y: -8.0 }, // upper
-    { x: -4.0, y: -8.0 }, // upper
-    // { x: 8.0, y: 4.0 }, // upper
-    // { x: -8.0, y: 4.0 }, // upper
-    // { x: 8.0, y: -4.0 }, // lower
-    // { x: -8.0, y: -4.0 }, // lower
-    // { x: 6.0, y: 6.0 }, // lower
-    // { x: -6.0, y: 6.0 }, // lower
-    // { x: 6.0, y: -6.0 }, // upper
-    // { x: -6.0, y: -6.0 }, // upper
-  ];
-
   // Randomly select a velocity
   // prettier-ignore
-  const randomVelocity = velocityOptions[Math.floor(Math.random() * velocityOptions.length)];
+  const randomVelocity = VELOCITY_OPTIONS[Math.floor(Math.random() * VELOCITY_OPTIONS.length)];
   Body.setVelocity(currentBall, randomVelocity);
 
   console.log("⚽ Football reset to center, new velocity:", randomVelocity);
