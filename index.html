@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="app.css" />
   </head>
   <body>
-    <!-- Scoreboard and Clock Area -->
     <section id="scoreboard-container">
       <div class="scoreboard">
         <div class="team-section">
@@ -24,67 +23,65 @@
       </div>
     </section>
 
-    <!-- Game Canvas Area -->
     <section id="game-container">
       <canvas id="game-canvas"></canvas>
     </section>
 
-    <!-- Main Football Betting Area -->
     <main id="betting-container">
-      <!-- Match Result Betting Block -->
       <section class="betting-section">
         <div class="betting-options">
           <button class="bet-btn" data-type="result" data-value="home">
-            1 <span class="odds">1.8</span>
+            1
+            <span class="odds">1.8</span>
           </button>
           <button class="bet-btn" data-type="result" data-value="draw">
-            X <span class="odds">3.2</span>
+            X
+            <span class="odds">3.2</span>
           </button>
           <button class="bet-btn" data-type="result" data-value="away">
-            2 <span class="odds">2.1</span>
+            2
+            <span class="odds">2.1</span>
           </button>
         </div>
       </section>
 
-      <!-- Over/Under Betting Block -->
       <section class="betting-section">
         <div class="betting-options">
           <button class="bet-btn" data-type="total" data-value="over">
-            Over (> 9.5) <span class="odds">1.9</span>
+            Over (> 9.5)
+            <span class="odds">1.9</span>
           </button>
           <button class="bet-btn" data-type="total" data-value="under">
-            Under (≤ 9.5) <span class="odds">1.8</span>
+            Under (≤ 9.5)
+            <span class="odds">1.8</span>
           </button>
         </div>
       </section>
 
-      <!-- Odd/Even Betting Block -->
       <section class="betting-section">
         <div class="betting-options">
           <button class="bet-btn" data-type="parity" data-value="odd">
-            Odd <span class="odds">1.9</span>
+            Odd
+            <span class="odds">1.9</span>
           </button>
           <button class="bet-btn" data-type="parity" data-value="even">
-            Even <span class="odds">1.9</span>
+            Even
+            <span class="odds">1.9</span>
           </button>
         </div>
       </section>
 
-      <!-- Bet Slip Display Area -->
       <section class="betting-section">
         <div id="bet-slip">
           <div class="bet-slip-empty"></div>
         </div>
-        <!-- Betting Action Buttons -->
         <div class="bet-actions">
           <button id="clear-bets" class="action-btn secondary">Clear</button>
-          <button id="place-bet" class="action-btn primary" disabled>
-            Confirm
-          </button>
+          <!-- prettier-ignore -->
+          <button id="place-bet" class="action-btn primary" disabled>Confirm</button>
         </div>
       </section>
 
-      <!-- Account Balance Display -->
       <section class="balance-section">
         <div class="balance-info">
           <span>Balance:</span>
@@ -93,9 +90,7 @@
       </section>
     </main>
 
-    <!-- Include Matter.js Physics Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-    <!-- Include Main Game Logic -->
     <script src="app.js"></script>
   </body>
 </html>
