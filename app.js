@@ -1,5 +1,5 @@
 // ========================================
-// Football Bouncing Game - Main Program
+// Mini Football Betting - Main Program
 // Using Matter.js physics engine to build football field and betting system
 // ========================================
 
@@ -12,7 +12,8 @@ const { Engine, Render, World, Bodies, Body, Events, Runner } = Matter;
 
 // Football and canvas size settings
 const BALL_RADIUS = 7.5; // Football radius
-const CANVAS_WIDTH = 340; // Canvas width (based on FIFA standard ratio)
+// Based on FIFA standard ratio, 1m = 5px
+const CANVAS_WIDTH = 340; // Canvas width
 const CANVAS_HEIGHT = 525; // Canvas height
 const GOAL_WIDTH = 37; // Goal width
 
@@ -51,21 +52,14 @@ let gameScore = {
   away: 0, // Away team score
 };
 
-/**
- * Format time display
- * @param {number} minutes - Minutes
- * @param {number} seconds - Seconds
- * @returns {string} Formatted time string
- */
+// Format time display
 function formatTime(minutes, seconds) {
   const paddedMinutes = minutes.toString().padStart(2, "0");
   const paddedSeconds = seconds.toString().padStart(2, "0");
   return `${paddedMinutes}:${paddedSeconds}`;
 }
 
-/**
- * Update timer display
- */
+// Update timer display
 function updateTimerDisplay() {
   const timeElement = document.querySelector(".game-time");
   if (timeElement) {
@@ -73,9 +67,7 @@ function updateTimerDisplay() {
   }
 }
 
-/**
- * Calculate current time based on elapsed time
- */
+// Calculate current time based on elapsed time
 function calculateCurrentTime() {
   const remainingMs = gameTimer.totalTimeMs - gameTimer.elapsedTimeMs;
   const remainingSeconds = Math.max(0, Math.floor(remainingMs / 1000));
@@ -84,9 +76,7 @@ function calculateCurrentTime() {
   gameTimer.seconds = remainingSeconds % 60;
 }
 
-/**
- * Start timer
- */
+// Start timer
 function startTimer() {
   if (gameTimer.isRunning) return;
 
@@ -117,25 +107,19 @@ function startTimer() {
   console.log("⏰ Timer started");
 }
 
-/**
- * Pause timer
- */
+// Pause timer
 function pauseTimer() {
   gameTimer.isPaused = true;
   console.log("⏸️ Timer paused");
 }
 
-/**
- * Resume timer
- */
+// Resume timer
 function resumeTimer() {
   gameTimer.isPaused = false;
   console.log("▶️ Timer resumed");
 }
 
-/**
- * Stop timer
- */
+// Stop timer
 function stopTimer() {
   if (gameTimer.intervalId) {
     clearInterval(gameTimer.intervalId);
@@ -146,9 +130,7 @@ function stopTimer() {
   console.log("⏹️ Timer stopped");
 }
 
-/**
- * Reset timer
- */
+// Reset timer
 function resetTimer() {
   stopTimer();
   gameTimer.minutes = 90;
@@ -158,9 +140,7 @@ function resetTimer() {
   console.log("🔄 Timer reset");
 }
 
-/**
- * Show game over screen
- */
+// Show game over screen
 function showGameOverScreen() {
   // Create game over overlay
   const gameOverOverlay = document.createElement("div");
@@ -252,9 +232,7 @@ function showGameOverScreen() {
   document.body.appendChild(gameOverOverlay);
 }
 
-/**
- * Handle game time up
- */
+// Handle game time up
 async function onGameTimeUp() {
   console.log("⏰ Game time is up!");
   console.log(
@@ -267,27 +245,24 @@ async function onGameTimeUp() {
   // Stop physics engine
   Engine.clear(engine);
 
-  // 處理開獎結果
+  // process betting results
   const resultData = processBettingResults(gameScore.home, gameScore.away);
 
-  // 更新餘額和投注記錄顯示
+  // update balance and bet slip display
   updateBalance();
   updateBetSlip();
 
-  console.log(
-    `💰 開獎完成：總獎金 ${resultData.totalWinnings}元，中獎 ${resultData.totalWinningBets} 注`
-  );
+  // prettier-ignore
+  console.log(`💰 Game Over：Total Win ${resultData.totalWinnings}，Won ${resultData.totalWinningBets} Bets`);
 
-  // 顯示開獎結果（等待用戶確認）
+  // show betting results (wait for user confirmation)
   await showBettingResults(resultData);
 
-  // 顯示遊戲結束畫面
+  // show game over screen
   showGameOverScreen();
 }
 
-/**
- * Update scoreboard display
- */
+// Update scoreboard display
 function updateScoreDisplay() {
   const homeScoreElement = document.querySelector(
     ".team-section:first-child .team-score"
@@ -304,18 +279,14 @@ function updateScoreDisplay() {
   }
 }
 
-/**
- * Reset score
- */
+// Reset score
 function resetScore() {
   gameScore.home = 0;
   gameScore.away = 0;
   updateScoreDisplay();
 }
 
-/**
- * Start game
- */
+// Start game
 function startGame() {
   if (gameState.isGameStarted) {
     console.log("🎮 Game already started");
@@ -818,10 +789,8 @@ World.add(engine.world, [
 // Current football object reference
 let currentBall = ball;
 
-/**
- * Completely reset game to initial state
- * Clear all bodies and recreate football and physics world
- */
+// Completely reset game to initial state
+// Clear all bodies and recreate football and physics world
 function resetGameToInitialState() {
   // Clear physics world
   World.clear(engine.world);
@@ -891,12 +860,12 @@ function resetGameToInitialState() {
   gameState.isGameStarted = false;
   gameState.isGameActive = false;
 
-  // 清除待開獎的投注記錄（保留已結算的記錄）
+  // clear pending bets (keep settled bets)
   bettingState.confirmedBets = bettingState.confirmedBets.filter(
     (betGroup) => betGroup.status === "settled"
   );
 
-  // 清除選中的投注並更新顯示
+  // clear selected bets and update display
   clearAllBets();
   updateBetSlip();
 
@@ -919,9 +888,7 @@ function resetGameToInitialState() {
 // Goal Animation System
 // ========================================
 
-/**
- * Reset football to center position and set new random velocity
- */
+// Reset football to center position and set new random velocity
 function resetBallToCenter() {
   // Move football to field center
   Body.setPosition(currentBall, { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 });
@@ -943,17 +910,14 @@ function resetBallToCenter() {
   ];
 
   // Randomly select a velocity
-  const randomVelocity =
-    velocityOptions[Math.floor(Math.random() * velocityOptions.length)];
+  // prettier-ignore
+  const randomVelocity = velocityOptions[Math.floor(Math.random() * velocityOptions.length)];
   Body.setVelocity(currentBall, randomVelocity);
 
   console.log("⚽ Football reset to center, new velocity:", randomVelocity);
 }
 
-/**
- * Show goal animation effect
- * @param {string} message - Goal message to display
- */
+// Show goal animation effect
 function showGoalAnimation(message) {
   // Pause timer
   pauseTimer();
@@ -1087,13 +1051,13 @@ const ODDS_TABLE = {
 // Betting option name mapping
 const BET_NAMES = {
   result: {
-    home: "Home",
-    draw: "Draw",
-    away: "Away",
+    home: "1",
+    draw: "X",
+    away: "2",
   },
   total: {
-    over: "Big (> 9.5)",
-    under: "Small (≤ 9.5)",
+    over: "Over (> 9.5)",
+    under: "Under (≤ 9.5)",
   },
   parity: {
     odd: "Odd",
@@ -1101,10 +1065,8 @@ const BET_NAMES = {
   },
 };
 
-/**
- * Initialize betting system
- * Bind all betting-related event listeners
- */
+// Initialize betting system
+// Bind all betting-related event listeners
 function initBettingSystem() {
   // Bind betting button click events
   document.querySelectorAll(".bet-btn").forEach((btn) => {
@@ -1121,10 +1083,7 @@ function initBettingSystem() {
   updateBalance();
 }
 
-/**
- * Handle betting selection logic
- * @param {Event} event - Button click event
- */
+// Handle betting selection logic
 function handleBetSelection(event) {
   const btn = event.currentTarget;
   const betType = btn.dataset.type;
@@ -1170,9 +1129,7 @@ function handleBetSelection(event) {
   updateSelectedBets();
 }
 
-/**
- * Clear all selected bets
- */
+// Clear all selected bets
 function clearAllBets() {
   bettingState.selectedBets = [];
   document
@@ -1181,17 +1138,13 @@ function clearAllBets() {
   updateSelectedBets();
 }
 
-/**
- * Update betting button state
- */
+// Update betting button state
 function updateSelectedBets() {
   const placeBetBtn = document.getElementById("place-bet");
   placeBetBtn.disabled = bettingState.selectedBets.length === 0;
 }
 
-/**
- * Handle bet confirmation
- */
+// Handle bet confirmation
 function placeBets() {
   if (bettingState.selectedBets.length === 0) {
     alert("Please select betting options!");
@@ -1227,9 +1180,7 @@ function placeBets() {
   startGame();
 }
 
-/**
- * Update bet slip display
- */
+// Update bet slip display
 function updateBetSlip() {
   const betSlip = document.getElementById("bet-slip");
 
@@ -1254,7 +1205,7 @@ function updateBetSlip() {
     let groupWinnings = 0;
 
     if (betGroup.status === "pending") {
-      // 顯示待開獎的投注
+      // show pending bets
       betGroup.bets.forEach((bet) => {
         const name = BET_NAMES[bet.type][bet.value];
         const potentialWin = Math.round(bet.amount * bet.odds);
@@ -1264,17 +1215,17 @@ function updateBetSlip() {
           <div class="bet-item">
             <div class="bet-item-info">
               <div class="bet-item-name">${name}</div>
-              <div class="bet-item-odds">Odds: ${bet.odds} | Win Amount: ${potentialWin}元</div>
+              <div class="bet-item-odds">Odds: ${bet.odds} | Win Amount: ${potentialWin}</div>
             </div>
-            <div class="bet-item-amount">${bet.amount}元</div>
-            <div style="font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600; background: #fff3cd; color: #856404;">等待開獎</div>
+            <div class="bet-item-amount">${bet.amount}</div>
+            <div style="font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600; background: #fff3cd; color: #856404;">Wait Result</div>
           </div>
         `;
       });
 
-      html += `<div style="background: #f0f8f0; padding: 8px 12px; text-align: right; font-weight: 600; color: #4a8c4a; font-size: 13px; border-top: 1px solid #e0e0e0;">投注總額: ${groupTotal}元</div>`;
+      html += `<div style="background: #f0f8f0; padding: 8px 12px; text-align: right; font-weight: 600; color: #4a8c4a; font-size: 13px; border-top: 1px solid #e0e0e0;">Total Amount: ${groupTotal}</div>`;
     } else if (betGroup.status === "settled" && betGroup.results) {
-      // 顯示已結算的投注
+      // show settled bets
       betGroup.results.forEach((result) => {
         groupTotal += result.amount;
         if (result.isWin) {
@@ -1285,17 +1236,17 @@ function updateBetSlip() {
           <div class="bet-item">
             <div class="bet-item-info">
               <div class="bet-item-name">${result.name}</div>
-              <div class="bet-item-odds">Odds: ${result.odds} | 投注: ${
+              <div class="bet-item-odds">Odds: ${result.odds} | Bets: ${
           result.amount
-        }元</div>
+        }</div>
             </div>
             <div class="bet-item-amount">
-              ${result.isWin ? `+${result.winAmount}元` : `${result.amount}元`}
+              ${result.isWin ? `+${result.winAmount}` : `${result.amount}`}
             </div>
             <div style="font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600; 
                         background: ${result.isWin ? "#d4edda" : "#f8d7da"}; 
                         color: ${result.isWin ? "#155724" : "#721c24"};">
-              ${result.isWin ? "中獎" : "未中"}
+              ${result.isWin ? "Win" : "Lose"}
             </div>
           </div>
         `;
@@ -1307,9 +1258,9 @@ function updateBetSlip() {
       }; padding: 8px 12px; text-align: right; font-weight: 600; color: ${
         netResult >= 0 ? "#155724" : "#721c24"
       }; font-size: 13px; border-top: 1px solid #e0e0e0;">`;
-      html += `投注: ${groupTotal}元 | 獎金: ${groupWinnings}元 | 淨收益: ${
+      html += `Place Bet: ${groupTotal} | Win: ${groupWinnings} | Net Win: ${
         netResult >= 0 ? "+" : ""
-      }${netResult}元`;
+      }${netResult}`;
       html += `</div>`;
     }
 
@@ -1319,24 +1270,17 @@ function updateBetSlip() {
   betSlip.innerHTML = html;
 }
 
-/**
- * Update balance display
- */
+// Update balance display
 function updateBalance() {
   document.getElementById("balance").textContent =
     bettingState.balance.toLocaleString();
 }
 
 // ========================================
-// 開獎系統
+// Result System
 // ========================================
 
-/**
- * 計算投注結果
- * @param {number} homeScore - 主隊得分
- * @param {number} awayScore - 客隊得分
- * @returns {object} 各類型投注的結果
- */
+// Calculate betting results
 function calculateBetResults(homeScore, awayScore) {
   const totalScore = homeScore + awayScore;
 
@@ -1357,19 +1301,14 @@ function calculateBetResults(homeScore, awayScore) {
   };
 }
 
-/**
- * 計算並處理開獎結果
- * @param {number} homeScore - 主隊得分
- * @param {number} awayScore - 客隊得分
- * @returns {object} 開獎結果統計
- */
+// Calculate and process betting results
 function processBettingResults(homeScore, awayScore) {
   const results = calculateBetResults(homeScore, awayScore);
   let totalWinnings = 0;
   let totalWinningBets = 0;
   let totalLosingBets = 0;
 
-  // 處理所有待開獎的投注記錄
+  // process all pending bets
   bettingState.confirmedBets.forEach((betGroup) => {
     if (betGroup.status === "pending") {
       betGroup.status = "settled";
@@ -1379,7 +1318,7 @@ function processBettingResults(homeScore, awayScore) {
         const isWin = results[bet.type][bet.value];
         const winAmount = isWin ? Math.round(bet.amount * bet.odds) : 0;
 
-        // 記錄單個投注結果
+        // record single bet result
         const betResult = {
           type: bet.type,
           value: bet.value,
@@ -1395,7 +1334,7 @@ function processBettingResults(homeScore, awayScore) {
         if (isWin) {
           totalWinnings += winAmount;
           totalWinningBets++;
-          // 將獎金加入餘額
+          // add winnings to balance
           bettingState.balance += winAmount;
         } else {
           totalLosingBets++;
@@ -1412,25 +1351,18 @@ function processBettingResults(homeScore, awayScore) {
       homeScore,
       awayScore,
       totalScore: homeScore + awayScore,
-      matchResult:
-        homeScore > awayScore
-          ? "主隊勝"
-          : awayScore > homeScore
-          ? "客隊勝"
-          : "平局",
-      totalResult: homeScore + awayScore > 9.5 ? "大球" : "小球",
-      parityResult: (homeScore + awayScore) % 2 === 1 ? "單" : "雙",
+      // prettier-ignore
+      matchResult: homeScore > awayScore ? "Home" : awayScore > homeScore ? "Away" : "X",
+      totalResult: homeScore + awayScore > 9.5 ? "Over" : "Under",
+      parityResult: (homeScore + awayScore) % 2 === 1 ? "Odd" : "Even",
     },
   };
 }
 
-/**
- * 顯示開獎結果
- * @param {object} resultData - 開獎結果數據
- */
+// Show betting results
 function showBettingResults(resultData) {
   return new Promise((resolve) => {
-    // 創建開獎結果覆蓋層
+    // create results overlay
     const resultsOverlay = document.createElement("div");
     resultsOverlay.style.position = "fixed";
     resultsOverlay.style.top = "0";
@@ -1445,7 +1377,7 @@ function showBettingResults(resultData) {
     resultsOverlay.style.fontFamily = "Arial, sans-serif";
     resultsOverlay.style.color = "white";
 
-    // 創建結果容器
+    // create results container
     const resultsContainer = document.createElement("div");
     resultsContainer.style.backgroundColor = "white";
     resultsContainer.style.borderRadius = "12px";
@@ -1457,63 +1389,63 @@ function showBettingResults(resultData) {
     resultsContainer.style.textAlign = "center";
     resultsContainer.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.3)";
 
-    // 標題
+    // title
     const title = document.createElement("h2");
-    title.textContent = "🎉 開獎結果";
+    title.textContent = "🎉 Results";
     title.style.color = "#4a8c4a";
     title.style.marginBottom = "20px";
     title.style.fontSize = "28px";
 
-    // 比賽結果
+    // game results
     const gameResultsDiv = document.createElement("div");
     gameResultsDiv.style.backgroundColor = "#f8f9fa";
     gameResultsDiv.style.padding = "15px";
     gameResultsDiv.style.borderRadius = "8px";
     gameResultsDiv.style.marginBottom = "20px";
     gameResultsDiv.innerHTML = `
-      <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">比賽結果</div>
+      <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Game Results</div>
       <div style="font-size: 24px; color: #4a8c4a; margin-bottom: 8px;">
-        主隊 ${resultData.gameResults.homeScore} - ${resultData.gameResults.awayScore} 客隊
+        Home ${resultData.gameResults.homeScore} - ${resultData.gameResults.awayScore} Away
       </div>
       <div style="font-size: 14px; color: #666;">
-        總分: ${resultData.gameResults.totalScore} (${resultData.gameResults.totalResult}) | 
+        Total: ${resultData.gameResults.totalScore} (${resultData.gameResults.totalResult}) | 
         ${resultData.gameResults.parityResult} | 
         ${resultData.gameResults.matchResult}
       </div>
     `;
 
-    // 投注結果統計
+    // betting results summary
     const summaryDiv = document.createElement("div");
     summaryDiv.style.backgroundColor = "#e8f5e8";
     summaryDiv.style.padding = "15px";
     summaryDiv.style.borderRadius = "8px";
     summaryDiv.style.marginBottom = "20px";
     summaryDiv.innerHTML = `
-      <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">投注統計</div>
+      <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Summary</div>
       <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-        <span>中獎注數:</span>
+        <span>Won Bets:</span>
         <span style="color: #4a8c4a; font-weight: bold;">${
           resultData.totalWinningBets
         }</span>
       </div>
       <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-        <span>未中注數:</span>
+        <span>Lose Bets:</span>
         <span style="color: #dc3545;">${resultData.totalLosingBets}</span>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: #4a8c4a;">
-        <span>總獎金:</span>
-        <span>${resultData.totalWinnings.toLocaleString()}元</span>
+        <span>Total Winnings:</span>
+        <span>${resultData.totalWinnings.toLocaleString()}</span>
       </div>
     `;
 
-    // 詳細投注結果
+    // detailed betting results
     const detailsDiv = document.createElement("div");
     detailsDiv.style.textAlign = "left";
     detailsDiv.style.marginBottom = "20px";
 
     if (resultData.totalWinningBets > 0 || resultData.totalLosingBets > 0) {
       detailsDiv.innerHTML =
-        '<div style="font-size: 16px; font-weight: bold; margin-bottom: 10px; text-align: center;">投注明細</div>';
+        '<div style="font-size: 16px; font-weight: bold; margin-bottom: 10px; text-align: center;">Bet Details</div>';
 
       bettingState.confirmedBets.forEach((betGroup) => {
         if (betGroup.status === "settled" && betGroup.results) {
@@ -1533,19 +1465,19 @@ function showBettingResults(resultData) {
             resultDiv.innerHTML = `
               <div>
                 <div style="font-weight: bold;">${result.name}</div>
-                <div style="font-size: 12px; color: #666;">投注: ${
+                <div style="font-size: 12px; color: #666;">Bet: ${
                   result.amount
-                }元 | 賠率: ${result.odds}</div>
+                } | Odds: ${result.odds}</div>
               </div>
               <div style="text-align: right;">
                 <div style="font-weight: bold; color: ${
                   result.isWin ? "#4a8c4a" : "#dc3545"
                 };">
-                  ${result.isWin ? "中獎" : "未中"}
+                  ${result.isWin ? "Win" : "Lose"}
                 </div>
                 ${
                   result.isWin
-                    ? `<div style="color: #4a8c4a;">+${result.winAmount}元</div>`
+                    ? `<div style="color: #4a8c4a;">+${result.winAmount}</div>`
                     : ""
                 }
               </div>
@@ -1557,12 +1489,12 @@ function showBettingResults(resultData) {
       });
     } else {
       detailsDiv.innerHTML =
-        '<div style="text-align: center; color: #666; font-style: italic;">本局沒有投注記錄</div>';
+        '<div style="text-align: center; color: #666; font-style: italic;">No bets</div>';
     }
 
-    // 確認按鈕
+    // confirm button
     const confirmButton = document.createElement("button");
-    confirmButton.textContent = "確認";
+    confirmButton.textContent = "Confirm";
     confirmButton.style.fontSize = "18px";
     confirmButton.style.padding = "12px 30px";
     confirmButton.style.backgroundColor = "#4a8c4a";
@@ -1586,7 +1518,7 @@ function showBettingResults(resultData) {
       resolve();
     });
 
-    // 組裝所有元素
+    // assemble all elements
     resultsContainer.appendChild(title);
     resultsContainer.appendChild(gameResultsDiv);
     resultsContainer.appendChild(summaryDiv);

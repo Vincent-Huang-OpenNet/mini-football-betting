@@ -12,7 +12,6 @@ body {
 #scoreboard-container {
   display: flex;
   justify-content: center;
-  /* margin-bottom: 15px; */
 }
 
 .scoreboard {
@@ -264,7 +263,6 @@ body {
 
 /* Balance Display Area */
 .balance-section {
-  /* margin-top: 12px; */
   padding: 10px 15px;
   background: linear-gradient(145deg, #2d5a2d, #4a8c4a);
   border-radius: 8px;
