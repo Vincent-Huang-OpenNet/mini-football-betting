@@ -278,6 +278,13 @@ body {
    Balance Section
    ======================================== */
 
+#balance {
+  color: #ffd700;
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0 5px;
+}
+
 .balance-section {
   padding: 10px 15px;
   background: linear-gradient(145deg, #2d5a2d, #4a8c4a);
@@ -289,11 +296,4 @@ body {
   color: white;
   font-size: 16px;
   font-weight: 600;
-}
-
-#balance {
-  color: #ffd700;
-  font-size: 20px;
-  font-weight: bold;
-  margin: 0 5px;
 }
