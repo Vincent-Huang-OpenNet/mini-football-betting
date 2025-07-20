@@ -27,45 +27,45 @@ const CENTER_CIRCLE_RADIUS = 46; // Center circle radius
 
 // Football velocity options for random movement
 const VELOCITY_OPTIONS = [
-  // { x: 3.0, y: 7.0 }, // upper
-  // { x: -3.0, y: 7.0 }, // upper
-  // { x: 3.0, y: -7.0 }, // lower
-  // { x: -3.0, y: -7.0 }, // lower
+  { x: 3.0, y: 7.0, result: "Upper" },
+  { x: -3.0, y: 7.0, result: "Upper" },
+  { x: 3.0, y: -7.0, result: "Lower" },
+  { x: -3.0, y: -7.0, result: "Lower" },
 
-  { x: 9.0, y: 3.0 }, // lower
-  { x: -9.0, y: 3.0 }, // lower
-  { x: 9.0, y: -3.0 }, // upper
-  { x: -9.0, y: -3.0 }, // upper
+  { x: 9.0, y: 3.0, result: "Lower" },
+  { x: -9.0, y: 3.0, result: "Lower" },
+  { x: 9.0, y: -3.0, result: "Upper" },
+  { x: -9.0, y: -3.0, result: "Upper" },
 
-  { x: 3.0, y: 9.0 }, // upper
-  { x: -3.0, y: 9.0 }, // upper
-  { x: 3.0, y: -9.0 }, // lower
-  { x: -3.0, y: -9.0 }, // lower
+  { x: 3.0, y: 9.0, result: "Upper" },
+  { x: -3.0, y: 9.0, result: "Upper" },
+  { x: 3.0, y: -9.0, result: "Lower" },
+  { x: -3.0, y: -9.0, result: "Lower" },
 
-  { x: 7.0, y: 5.0 }, // draw
-  { x: -7.0, y: 5.0 }, // draw
-  { x: 7.0, y: -5.0 }, // draw
-  { x: -7.0, y: -5.0 }, // draw
+  { x: 7.0, y: 5.0, result: "draw" },
+  { x: -7.0, y: 5.0, result: "draw" },
+  { x: 7.0, y: -5.0, result: "draw" },
+  { x: -7.0, y: -5.0, result: "draw" },
 
-  { x: -5.0, y: 7.0 }, // upper
-  { x: -5.0, y: -7.0 }, // lower
-  { x: 5.0, y: -7.0 }, // lower
-  { x: 5.0, y: 7.0 }, // upper
+  { x: 5.0, y: 7.0, result: "Upper" },
+  { x: -5.0, y: 7.0, result: "Upper" },
+  { x: 5.0, y: -7.0, result: "Lower" },
+  { x: -5.0, y: -7.0, result: "Lower" },
 
-  { x: 4.0, y: 8.0 }, // lower
-  { x: -4.0, y: 8.0 }, // lower
-  { x: 4.0, y: -8.0 }, // upper
-  { x: -4.0, y: -8.0 }, // upper
+  { x: 4.0, y: 8.0, result: "Lower" },
+  { x: -4.0, y: 8.0, result: "Lower" },
+  { x: 4.0, y: -8.0, result: "Upper" },
+  { x: -4.0, y: -8.0, result: "Upper" },
 
-  { x: 8.0, y: 4.0 }, // upper
-  { x: -8.0, y: 4.0 }, // upper
-  { x: 8.0, y: -4.0 }, // lower
-  { x: -8.0, y: -4.0 }, // lower
+  { x: 8.0, y: 4.0, result: "Upper" },
+  { x: -8.0, y: 4.0, result: "Upper" },
+  { x: 8.0, y: -4.0, result: "Lower" },
+  { x: -8.0, y: -4.0, result: "Lower" },
 
-  { x: 6.0, y: 6.0 }, // lower
-  { x: -6.0, y: 6.0 }, // lower
-  { x: 6.0, y: -6.0 }, // upper
-  { x: -6.0, y: -6.0 }, // upper
+  { x: 6.0, y: 6.0, result: "Lower" },
+  { x: -6.0, y: 6.0, result: "Lower" },
+  { x: 6.0, y: -6.0, result: "Upper" },
+  { x: -6.0, y: -6.0, result: "Upper" },
 ];
 
 // ========================================
@@ -239,13 +239,17 @@ function startGame() {
   gameState.isGameActive = true;
 
   // prettier-ignore
-  const randomVelocity = VELOCITY_OPTIONS[Math.floor(Math.random() * VELOCITY_OPTIONS.length)];
-  Body.setVelocity(currentBall, randomVelocity);
+  const randomVelocityOption = VELOCITY_OPTIONS[Math.floor(Math.random() * VELOCITY_OPTIONS.length)];
+  Body.setVelocity(currentBall, {
+    x: randomVelocityOption.x,
+    y: randomVelocityOption.y,
+  });
 
   // Start timer
   startTimer();
 
-  console.log("🚀 Game started! Initial velocity:", randomVelocity);
+  // prettier-ignore
+  console.log(`🚀 Game started! Initial velocity: {${randomVelocityOption.x}, ${randomVelocityOption.y}} | Expected result: ${randomVelocityOption.result}`);
 }
 
 // ========================================
@@ -821,10 +825,14 @@ function resetBallToCenter() {
 
   // Randomly select a velocity
   // prettier-ignore
-  const randomVelocity = VELOCITY_OPTIONS[Math.floor(Math.random() * VELOCITY_OPTIONS.length)];
-  Body.setVelocity(currentBall, randomVelocity);
+  const randomVelocityOption = VELOCITY_OPTIONS[Math.floor(Math.random() * VELOCITY_OPTIONS.length)];
+  Body.setVelocity(currentBall, {
+    x: randomVelocityOption.x,
+    y: randomVelocityOption.y,
+  });
 
-  console.log("⚽ Football reset to center, new velocity:", randomVelocity);
+  // prettier-ignore
+  console.log(`⚽ Football reset to center, new velocity: {${randomVelocityOption.x}, ${randomVelocityOption.y}} | Expected result: ${randomVelocityOption.result}`);
 }
 
 // Show goal animation effect
