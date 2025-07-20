@@ -183,104 +183,9 @@ function resetTimer() {
   console.log("🔄 Timer reset");
 }
 
-// Show game over screen
-function showGameOverScreen() {
-  // Create game over overlay
-  const gameOverOverlay = document.createElement("div");
-  gameOverOverlay.style.position = "fixed";
-  gameOverOverlay.style.top = "0";
-  gameOverOverlay.style.left = "0";
-  gameOverOverlay.style.width = "100%";
-  gameOverOverlay.style.height = "100%";
-  gameOverOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-  gameOverOverlay.style.zIndex = "2000";
-  gameOverOverlay.style.display = "flex";
-  gameOverOverlay.style.flexDirection = "column";
-  gameOverOverlay.style.justifyContent = "center";
-  gameOverOverlay.style.alignItems = "center";
-  gameOverOverlay.style.fontFamily = "Arial, sans-serif";
-  gameOverOverlay.style.color = "white";
-  gameOverOverlay.style.textAlign = "center";
-
-  // Game over title
-  const gameOverTitle = document.createElement("h1");
-  gameOverTitle.textContent = "Game Over！";
-  gameOverTitle.style.fontSize = "48px";
-  gameOverTitle.style.color = "#FFD700";
-  gameOverTitle.style.textShadow = "4px 4px 8px rgba(0, 0, 0, 0.8)";
-  gameOverTitle.style.marginBottom = "30px";
-
-  // Final score
-  const finalScore = document.createElement("div");
-  finalScore.innerHTML = `
-    <div style="font-size: 36px; margin-bottom: 20px;">Final Score</div>
-    <div style="font-size: 48px; font-weight: bold; margin-bottom: 30px;">
-      Home ${gameScore.home} - ${gameScore.away} Away
-    </div>
-  `;
-
-  // Match result
-  const matchResult = document.createElement("div");
-  matchResult.style.fontSize = "24px";
-  matchResult.style.marginBottom = "40px";
-
-  if (gameScore.home > gameScore.away) {
-    matchResult.textContent = "🎉 Home Win！";
-    matchResult.style.color = "#4CAF50";
-  } else if (gameScore.away > gameScore.home) {
-    matchResult.textContent = "🎉 Away Win！";
-    matchResult.style.color = "#4CAF50";
-  } else {
-    matchResult.textContent = "🤝 Draw！";
-    matchResult.style.color = "#FFC107";
-  }
-
-  // Restart button
-  const restartButton = document.createElement("button");
-  restartButton.textContent = "New Game";
-  restartButton.style.fontSize = "20px";
-  restartButton.style.padding = "15px 30px";
-  restartButton.style.backgroundColor = "#4a8c4a";
-  restartButton.style.color = "white";
-  restartButton.style.border = "none";
-  restartButton.style.borderRadius = "8px";
-  restartButton.style.cursor = "pointer";
-  restartButton.style.fontWeight = "bold";
-  restartButton.style.transition = "all 0.3s ease";
-
-  restartButton.addEventListener("mouseenter", () => {
-    restartButton.style.backgroundColor = "#3d7a3d";
-    restartButton.style.transform = "translateY(-2px)";
-  });
-
-  restartButton.addEventListener("mouseleave", () => {
-    restartButton.style.backgroundColor = "#4a8c4a";
-    restartButton.style.transform = "translateY(0)";
-  });
-
-  restartButton.addEventListener("click", () => {
-    // Remove game over screen
-    document.body.removeChild(gameOverOverlay);
-    // Reset game
-    resetGameToInitialState();
-  });
-
-  // Assemble elements
-  gameOverOverlay.appendChild(gameOverTitle);
-  gameOverOverlay.appendChild(finalScore);
-  gameOverOverlay.appendChild(matchResult);
-  gameOverOverlay.appendChild(restartButton);
-
-  // Add to page
-  document.body.appendChild(gameOverOverlay);
-}
-
 // Handle game time up
 async function onGameTimeUp() {
   console.log("⏰ Game time is up!");
-  console.log(
-    `📊 Final score: Home ${gameScore.home} - ${gameScore.away} Away`
-  );
 
   // Set game state to inactive
   gameState.isGameActive = false;
@@ -295,14 +200,8 @@ async function onGameTimeUp() {
   updateBalance();
   updateBetSlip();
 
-  // prettier-ignore
-  console.log(`💰 Game Over：Total Win ${resultData.totalWinnings}，Won ${resultData.totalWinningBets} Bets`);
-
   // show betting results (wait for user confirmation)
   await showBettingResults(resultData);
-
-  // show game over screen
-  showGameOverScreen();
 }
 
 // Update scoreboard display
@@ -940,7 +839,7 @@ function showGoalAnimation(message) {
   goalText.style.left = "50%";
   goalText.style.top = "50%";
   goalText.style.transform = "translate(-50%, -50%)";
-  goalText.style.fontSize = "24px";
+  goalText.style.fontSize = "32px";
   goalText.style.fontWeight = "bold";
   goalText.style.color = "#FFD700"; // Gold text
   goalText.style.textShadow = "4px 4px 8px rgba(0, 0, 0, 0.8)";
@@ -1017,15 +916,15 @@ Events.on(engine, "collisionStart", function (event) {
 
       // Display goal message and update score based on goal position
       if (goalSensor.label === "upperGoal") {
-        console.log("🥅 Upper goal scored! Home team scores!");
         gameScore.home++; // Home team scores
+        console.log("🥅 Upper goal scored! Team 1 scores!");
         updateScoreDisplay();
-        showGoalAnimation("Home Team Goal！");
+        showGoalAnimation("Team 1 Goal！");
       } else if (goalSensor.label === "lowerGoal") {
-        console.log("🥅 Lower goal scored! Away team scores!");
         gameScore.away++; // Away team scores
+        console.log("🥅 Lower goal scored! Team 2 scores!");
         updateScoreDisplay();
-        showGoalAnimation("Away Team Goal！");
+        showGoalAnimation("Team 2 Goal！");
       }
     }
   }
@@ -1067,8 +966,8 @@ const BET_NAMES = {
     away: "2",
   },
   total: {
-    over: "Over (> 9.5)",
-    under: "Under (≤ 9.5)",
+    over: "Over (> 4.5)",
+    under: "Under (≤ 4.5)",
   },
   parity: {
     odd: "Odd",
@@ -1302,8 +1201,7 @@ function calculateBetResults(homeScore, awayScore) {
       away: awayScore > homeScore,
     },
     total: {
-      over: totalScore > 9.5,
-      under: totalScore <= 9.5,
+      over: totalScore > 4.5,
     },
     parity: {
       odd: totalScore % 2 === 1,
@@ -1363,8 +1261,8 @@ function processBettingResults(homeScore, awayScore) {
       awayScore,
       totalScore: homeScore + awayScore,
       // prettier-ignore
-      matchResult: homeScore > awayScore ? "Home" : awayScore > homeScore ? "Away" : "X",
-      totalResult: homeScore + awayScore > 9.5 ? "Over" : "Under",
+      matchResult: homeScore > awayScore ? "Team 1" : awayScore > homeScore ? "Team 2" : "X",
+      totalResult: homeScore + awayScore > 4.5 ? "Over" : "Under",
       parityResult: (homeScore + awayScore) % 2 === 1 ? "Odd" : "Even",
     },
   };
@@ -1415,7 +1313,7 @@ function showBettingResults(resultData) {
     gameResultsDiv.style.marginBottom = "20px";
     gameResultsDiv.innerHTML = `
       <div style="font-size: 24px; color: #4a8c4a; margin-bottom: 8px;">
-        Home ${resultData.gameResults.homeScore} - ${resultData.gameResults.awayScore} Away
+          Team 1 <span id="final-score" style="color: #e74c3c;">${resultData.gameResults.homeScore} - ${resultData.gameResults.awayScore}</span> Team 2
       </div>
       <div style="font-size: 14px; color: #666;">
         ${resultData.gameResults.matchResult} |
@@ -1501,6 +1399,7 @@ function showBettingResults(resultData) {
 
     confirmButton.addEventListener("click", () => {
       document.body.removeChild(resultsOverlay);
+      resetGameToInitialState();
       resolve();
     });
 
