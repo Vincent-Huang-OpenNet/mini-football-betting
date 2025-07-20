@@ -25,6 +25,341 @@ const GOAL_AREA_DEPTH = 28; // Goal area depth
 const CORNER_ARC_RADIUS = 5; // Corner arc radius
 const CENTER_CIRCLE_RADIUS = 46; // Center circle radius
 
+// ========================================
+// Player Configuration
+// ========================================
+
+const PLAYER_RADIUS = 15; // 球員半徑 (比球大一倍：7.5 * 2 = 15)
+const PLAYER_SPEED = 2; // 球員移動速度
+
+// 球員初始位置配置
+const PLAYER_POSITIONS = {
+  home: [
+    // Team 1 球員 (11人制)
+    { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT * 0.95 }, // 守門員 (球門前)
+    { x: CANVAS_WIDTH * 0.25, y: CANVAS_HEIGHT * 0.8 }, // 後衛1
+    { x: CANVAS_WIDTH * 0.45, y: CANVAS_HEIGHT * 0.8 }, // 後衛2
+    { x: CANVAS_WIDTH * 0.55, y: CANVAS_HEIGHT * 0.8 }, // 後衛3
+    { x: CANVAS_WIDTH * 0.75, y: CANVAS_HEIGHT * 0.8 }, // 後衛4
+    { x: CANVAS_WIDTH * 0.2, y: CANVAS_HEIGHT * 0.65 }, // 中場1
+    { x: CANVAS_WIDTH * 0.4, y: CANVAS_HEIGHT * 0.65 }, // 中場2
+    { x: CANVAS_WIDTH * 0.6, y: CANVAS_HEIGHT * 0.65 }, // 中場3
+    { x: CANVAS_WIDTH * 0.8, y: CANVAS_HEIGHT * 0.65 }, // 中場4
+    { x: CANVAS_WIDTH * 0.35, y: CANVAS_HEIGHT * 0.45 }, // 前鋒1
+    { x: CANVAS_WIDTH * 0.65, y: CANVAS_HEIGHT * 0.45 }, // 前鋒2
+  ],
+  away: [
+    // Team 2 球員 (11人制)
+    { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT * 0.05 }, // 守門員 (球門前)
+    { x: CANVAS_WIDTH * 0.25, y: CANVAS_HEIGHT * 0.2 }, // 後衛1
+    { x: CANVAS_WIDTH * 0.45, y: CANVAS_HEIGHT * 0.2 }, // 後衛2
+    { x: CANVAS_WIDTH * 0.55, y: CANVAS_HEIGHT * 0.2 }, // 後衛3
+    { x: CANVAS_WIDTH * 0.75, y: CANVAS_HEIGHT * 0.2 }, // 後衛4
+    { x: CANVAS_WIDTH * 0.2, y: CANVAS_HEIGHT * 0.35 }, // 中場1
+    { x: CANVAS_WIDTH * 0.4, y: CANVAS_HEIGHT * 0.35 }, // 中場2
+    { x: CANVAS_WIDTH * 0.6, y: CANVAS_HEIGHT * 0.35 }, // 中場3
+    { x: CANVAS_WIDTH * 0.8, y: CANVAS_HEIGHT * 0.35 }, // 中場4
+    { x: CANVAS_WIDTH * 0.35, y: CANVAS_HEIGHT * 0.55 }, // 前鋒1
+    { x: CANVAS_WIDTH * 0.65, y: CANVAS_HEIGHT * 0.55 }, // 前鋒2
+  ],
+};
+
+// 球員物體陣列
+let players = {
+  home: [],
+  away: [],
+};
+
+// ========================================
+// Player Creation Functions
+// ========================================
+
+// 創建球員
+function createPlayers() {
+  // 清空現有球員
+  players.home = [];
+  players.away = [];
+
+  // 創建 Team 1 球員 (法國隊)
+  PLAYER_POSITIONS.home.forEach((pos, index) => {
+    const player = Bodies.circle(pos.x, pos.y, PLAYER_RADIUS, {
+      isStatic: false,
+      isSensor: true, // 關鍵：不影響球的物理碰撞
+      frictionAir: 0.1, // 輕微空氣阻力讓球員移動更自然
+      render: {
+        sprite: {
+          texture: "./ar.png",
+          xScale: (PLAYER_RADIUS * 2) / 278, // 根據圖片尺寸縮放
+          yScale: (PLAYER_RADIUS * 2) / 278,
+        },
+      },
+      label: `homePlayer_${index}`,
+    });
+    players.home.push(player);
+  });
+
+  // 創建 Team 2 球員 (阿根廷隊)
+  PLAYER_POSITIONS.away.forEach((pos, index) => {
+    const player = Bodies.circle(pos.x, pos.y, PLAYER_RADIUS, {
+      isStatic: false,
+      isSensor: true, // 關鍵：不影響球的物理碰撞
+      frictionAir: 0.1,
+      render: {
+        sprite: {
+          texture: "./fr.png",
+          xScale: (PLAYER_RADIUS * 2) / 278, // 根據圖片尺寸縮放
+          yScale: (PLAYER_RADIUS * 2) / 278,
+        },
+      },
+      label: `awayPlayer_${index}`,
+    });
+    players.away.push(player);
+  });
+
+  return [...players.home, ...players.away];
+}
+
+// 重置球員位置
+function resetPlayersPosition() {
+  // 重置 Team 1 球員位置
+  players.home.forEach((player, index) => {
+    const pos = PLAYER_POSITIONS.home[index];
+    Body.setPosition(player, { x: pos.x, y: pos.y });
+    Body.setVelocity(player, { x: 0, y: 0 });
+  });
+
+  // 重置 Team 2 球員位置
+  players.away.forEach((player, index) => {
+    const pos = PLAYER_POSITIONS.away[index];
+    Body.setPosition(player, { x: pos.x, y: pos.y });
+    Body.setVelocity(player, { x: 0, y: 0 });
+  });
+}
+
+// 預測球的軌跡
+function predictBallPosition(steps = 30) {
+  const ballVel = currentBall.velocity;
+  const ballPos = currentBall.position;
+
+  // 簡單的線性預測（忽略碰撞）
+  return {
+    x: ballPos.x + ballVel.x * steps,
+    y: ballPos.y + ballVel.y * steps,
+  };
+}
+
+// 檢查球員是否應該進行"傳球"動作
+function shouldPlayerReactToBall(player, ballPos, ballVel) {
+  const playerPos = player.position;
+  const distanceToBall = Math.sqrt(
+    Math.pow(ballPos.x - playerPos.x, 2) + Math.pow(ballPos.y - playerPos.y, 2)
+  );
+
+  // 擴大反應範圍，讓球員更積極移動
+  if (distanceToBall < 100) {
+    // 檢查球是否朝向球員移動（放寬條件）
+    const ballToPlayer = {
+      x: playerPos.x - ballPos.x,
+      y: playerPos.y - ballPos.y,
+    };
+
+    const dotProduct = ballVel.x * ballToPlayer.x + ballVel.y * ballToPlayer.y;
+    return dotProduct > -50 && distanceToBall > PLAYER_RADIUS + BALL_RADIUS + 3; // 更寬鬆的方向檢查
+  }
+
+  return false;
+}
+
+// 找到最佳接球位置
+function findBestReceivingPosition(player, playerIndex, isHomeTeam) {
+  const ballPos = currentBall.position;
+  const ballVel = currentBall.velocity;
+  const playerPos = player.position;
+  const initialPos = isHomeTeam
+    ? PLAYER_POSITIONS.home[playerIndex]
+    : PLAYER_POSITIONS.away[playerIndex];
+
+  // 預測球在未來的位置
+  const futureBallPos = predictBallPosition(20);
+
+  // 根據球員角色決定移動策略
+  const role = getPlayerRole(playerIndex);
+
+  switch (role) {
+    case "goalkeeper":
+      // 守門員：主要守在球門前，只有球很近時才移動
+      if (Math.abs(ballPos.y - playerPos.y) < 100) {
+        return { x: ballPos.x, y: initialPos.y };
+      }
+      return initialPos;
+
+    case "defender":
+      // 後衛：大幅度移動到球的路徑上
+      const goalY = isHomeTeam ? CANVAS_HEIGHT : 0;
+      const interceptY = ballPos.y + (goalY - ballPos.y) * 0.5;
+      return { x: futureBallPos.x, y: interceptY };
+
+    case "midfielder":
+      // 中場：大範圍跟隨球並預測位置
+      return {
+        x: futureBallPos.x + (Math.random() - 0.5) * 30,
+        y: futureBallPos.y + (Math.random() - 0.5) * 30,
+      };
+
+    case "forward":
+      // 前鋒：積極朝球和對方球門移動
+      const opponentGoalY = isHomeTeam ? 0 : CANVAS_HEIGHT;
+      return {
+        x: ballPos.x + ballVel.x * 15,
+        y: ballPos.y + (opponentGoalY - ballPos.y) * 0.3,
+      };
+
+    default:
+      return futureBallPos;
+  }
+}
+
+// 根據球員索引判斷角色
+function getPlayerRole(index) {
+  if (index === 0) return "goalkeeper";
+  if (index <= 4) return "defender";
+  if (index <= 8) return "midfielder";
+  return "forward";
+}
+
+// 檢查並限制球員在球場範圍內
+function keepPlayerInBounds(player, velocity) {
+  const pos = player.position;
+  const boundary = 20; // 距離邊界的安全距離
+
+  let newVelX = velocity.x;
+  let newVelY = velocity.y;
+
+  // 檢查左右邊界
+  if (pos.x <= boundary && velocity.x < 0) {
+    newVelX = Math.abs(velocity.x); // 反彈向右
+  } else if (pos.x >= CANVAS_WIDTH - boundary && velocity.x > 0) {
+    newVelX = -Math.abs(velocity.x); // 反彈向左
+  }
+
+  // 檢查上下邊界
+  if (pos.y <= boundary && velocity.y < 0) {
+    newVelY = Math.abs(velocity.y); // 反彈向下
+  } else if (pos.y >= CANVAS_HEIGHT - boundary && velocity.y > 0) {
+    newVelY = -Math.abs(velocity.y); // 反彈向上
+  }
+
+  return { x: newVelX, y: newVelY };
+}
+
+// 改進的球員AI移動邏輯
+function updatePlayersMovement() {
+  if (!gameState.isGameActive) return;
+
+  const ballPos = currentBall.position;
+  const ballVel = currentBall.velocity;
+
+  // Team 1 球員移動邏輯 (法國隊)
+  players.home.forEach((player, index) => {
+    const playerPos = player.position;
+    const initialPos = PLAYER_POSITIONS.home[index];
+
+    // 檢查是否應該對球做出反應
+    if (shouldPlayerReactToBall(player, ballPos, ballVel)) {
+      // 找到最佳接球位置
+      const targetPos = findBestReceivingPosition(player, index, true);
+
+      // 計算移動方向
+      const distanceToTarget = Math.sqrt(
+        Math.pow(targetPos.x - playerPos.x, 2) +
+          Math.pow(targetPos.y - playerPos.y, 2)
+      );
+
+      if (distanceToTarget > 5) {
+        const directionX = (targetPos.x - playerPos.x) / distanceToTarget;
+        const directionY = (targetPos.y - playerPos.y) / distanceToTarget;
+
+        // 根據角色調整移動速度（大幅提升）
+        const role = getPlayerRole(index);
+        let speedMultiplier = 1.5;
+        if (role === "midfielder") speedMultiplier = 2.0;
+        if (role === "forward") speedMultiplier = 2.5;
+        if (role === "goalkeeper") speedMultiplier = 1.0;
+
+        const boundedVelocity = keepPlayerInBounds(player, {
+          x: directionX * PLAYER_SPEED * speedMultiplier,
+          y: directionY * PLAYER_SPEED * speedMultiplier,
+        });
+        Body.setVelocity(player, boundedVelocity);
+      } else {
+        // 到達目標位置，繼續小幅移動
+        const smallMovement = keepPlayerInBounds(player, {
+          x: (Math.random() - 0.5) * PLAYER_SPEED * 0.8,
+          y: (Math.random() - 0.5) * PLAYER_SPEED * 0.8,
+        });
+        Body.setVelocity(player, smallMovement);
+      }
+    } else {
+      // 自由移動，不回到原始位置（大幅度漫遊50%增加）
+      const freeMovement = keepPlayerInBounds(player, {
+        x: (Math.random() - 0.5) * PLAYER_SPEED * 0.6,
+        y: (Math.random() - 0.5) * PLAYER_SPEED * 0.6,
+      });
+      Body.setVelocity(player, freeMovement);
+    }
+  });
+
+  // Team 2 球員移動邏輯 (阿根廷隊)
+  players.away.forEach((player, index) => {
+    const playerPos = player.position;
+    const initialPos = PLAYER_POSITIONS.away[index];
+
+    // 檢查是否應該對球做出反應
+    if (shouldPlayerReactToBall(player, ballPos, ballVel)) {
+      // 找到最佳接球位置
+      const targetPos = findBestReceivingPosition(player, index, false);
+
+      // 計算移動方向
+      const distanceToTarget = Math.sqrt(
+        Math.pow(targetPos.x - playerPos.x, 2) +
+          Math.pow(targetPos.y - playerPos.y, 2)
+      );
+
+      if (distanceToTarget > 5) {
+        const directionX = (targetPos.x - playerPos.x) / distanceToTarget;
+        const directionY = (targetPos.y - playerPos.y) / distanceToTarget;
+
+        // 根據角色調整移動速度（大幅提升）
+        const role = getPlayerRole(index);
+        let speedMultiplier = 1.5;
+        if (role === "midfielder") speedMultiplier = 2.0;
+        if (role === "forward") speedMultiplier = 2.5;
+        if (role === "goalkeeper") speedMultiplier = 1.0;
+
+        const boundedVelocity = keepPlayerInBounds(player, {
+          x: directionX * PLAYER_SPEED * speedMultiplier,
+          y: directionY * PLAYER_SPEED * speedMultiplier,
+        });
+        Body.setVelocity(player, boundedVelocity);
+      } else {
+        // 到達目標位置，繼續小幅移動
+        const smallMovement = keepPlayerInBounds(player, {
+          x: (Math.random() - 0.5) * PLAYER_SPEED * 0.45,
+          y: (Math.random() - 0.5) * PLAYER_SPEED * 0.45,
+        });
+        Body.setVelocity(player, smallMovement);
+      }
+    } else {
+      // 自由移動，不回到原始位置（大幅度漫遊50%增加）
+      const freeMovement = keepPlayerInBounds(player, {
+        x: (Math.random() - 0.5) * PLAYER_SPEED * 0.3,
+        y: (Math.random() - 0.5) * PLAYER_SPEED * 0.3,
+      });
+      Body.setVelocity(player, freeMovement);
+    }
+  });
+}
+
 // Football velocity options for random movement
 const VELOCITY_OPTIONS = [
   { x: 3.0, y: 7.0, result: "Upper" },
@@ -756,10 +1091,14 @@ function resetGameToInitialState() {
   // Football stays still in initial state, waiting for game to start
   Body.setVelocity(currentBall, { x: 0, y: 0 });
 
+  // 創建球員
+  const playerBodies = createPlayers();
+
   // Re-add all bodies to world
   World.add(engine.world, [
     ...walls,
     currentBall,
+    ...playerBodies, // 添加球員
     upperGoalSensor,
     lowerGoalSensor,
     centerCircle,
@@ -822,6 +1161,9 @@ function resetGameToInitialState() {
 function resetBallToCenter() {
   // Move football to field center
   Body.setPosition(currentBall, { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 });
+
+  // 重置球員位置
+  resetPlayersPosition();
 
   // Randomly select a velocity
   // prettier-ignore
@@ -1433,9 +1775,18 @@ let runner = Runner.create();
 Render.run(render);
 Runner.run(runner, engine);
 
+// 添加遊戲更新循環
+Events.on(engine, "beforeUpdate", function () {
+  updatePlayersMovement();
+});
+
 // Initialize betting system after page load
 document.addEventListener("DOMContentLoaded", function () {
   initBettingSystem();
+
+  // 創建並添加球員到世界
+  const playerBodies = createPlayers();
+  World.add(engine.world, playerBodies);
 
   // Initialize timer and score display
   updateTimerDisplay();
