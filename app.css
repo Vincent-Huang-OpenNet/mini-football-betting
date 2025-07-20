@@ -1,14 +1,31 @@
-/* Global Style Settings */
+/* ========================================
+   Global Styles
+   ======================================== */
+
 body {
   margin: 0;
-  padding: 10px;
-  background-color: #4a8c4a;
+  padding: 0;
+  background-color: #000000;
   font-family: "Arial", sans-serif;
   color: white;
   min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
-/* Scoreboard Area Styles */
+.app-container {
+  width: 414px;
+  background-color: #4a8c4a;
+  padding: 10px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   Scoreboard Section
+   ======================================== */
+
 #scoreboard-container {
   display: flex;
   justify-content: center;
@@ -65,12 +82,14 @@ body {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Game Canvas Area Styles */
+/* ========================================
+   Game Canvas Section
+   ======================================== */
+
 #game-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  /* margin-bottom: 20px; */
   text-align: center;
   background-color: rgba(0, 0, 0, 0.1);
   padding: 20px;
@@ -87,7 +106,10 @@ body {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Main Betting Container Styles */
+/* ========================================
+   Betting System
+   ======================================== */
+
 #betting-container {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 12px;
@@ -95,7 +117,6 @@ body {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
-/* Betting Section Styles */
 .betting-section {
   margin-bottom: 12px;
   padding: 12px;
@@ -104,7 +125,7 @@ body {
   border: 1px solid rgba(45, 90, 45, 0.1);
 }
 
-/* Betting Button Styles */
+/* Betting Options */
 .betting-options {
   display: flex;
   gap: 6px;
@@ -151,7 +172,10 @@ body {
   opacity: 0.8;
 }
 
-/* Bet Slip Styles */
+/* ========================================
+   Bet Slip
+   ======================================== */
+
 #bet-slip {
   min-height: 80px;
   padding: 10px;
@@ -201,21 +225,10 @@ body {
   font-size: 13px;
 }
 
-.remove-bet {
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 3px;
-  padding: 3px 6px;
-  cursor: pointer;
-  font-size: 11px;
-}
+/* ========================================
+   Action Buttons
+   ======================================== */
 
-.remove-bet:hover {
-  background: #c82333;
-}
-
-/* Action Button Styles */
 .bet-actions {
   display: flex;
   gap: 10px;
@@ -261,7 +274,10 @@ body {
   box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
 }
 
-/* Balance Display Area */
+/* ========================================
+   Balance Section
+   ======================================== */
+
 .balance-section {
   padding: 10px 15px;
   background: linear-gradient(145deg, #2d5a2d, #4a8c4a);

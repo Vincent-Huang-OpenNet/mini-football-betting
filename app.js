@@ -929,7 +929,7 @@ function showGoalAnimation(message) {
   goalText.style.left = "50%";
   goalText.style.top = "50%";
   goalText.style.transform = "translate(-50%, -50%)";
-  goalText.style.fontSize = "48px";
+  goalText.style.fontSize = "24px";
   goalText.style.fontWeight = "bold";
   goalText.style.color = "#FFD700"; // Gold text
   goalText.style.textShadow = "4px 4px 8px rgba(0, 0, 0, 0.8)";
@@ -1403,38 +1403,13 @@ function showBettingResults(resultData) {
     gameResultsDiv.style.borderRadius = "8px";
     gameResultsDiv.style.marginBottom = "20px";
     gameResultsDiv.innerHTML = `
-      <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Game Results</div>
       <div style="font-size: 24px; color: #4a8c4a; margin-bottom: 8px;">
         Home ${resultData.gameResults.homeScore} - ${resultData.gameResults.awayScore} Away
       </div>
       <div style="font-size: 14px; color: #666;">
-        Total: ${resultData.gameResults.totalScore} (${resultData.gameResults.totalResult}) | 
-        ${resultData.gameResults.parityResult} | 
-        ${resultData.gameResults.matchResult}
-      </div>
-    `;
-
-    // betting results summary
-    const summaryDiv = document.createElement("div");
-    summaryDiv.style.backgroundColor = "#e8f5e8";
-    summaryDiv.style.padding = "15px";
-    summaryDiv.style.borderRadius = "8px";
-    summaryDiv.style.marginBottom = "20px";
-    summaryDiv.innerHTML = `
-      <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Summary</div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-        <span>Won Bets:</span>
-        <span style="color: #4a8c4a; font-weight: bold;">${
-          resultData.totalWinningBets
-        }</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-        <span>Lose Bets:</span>
-        <span style="color: #dc3545;">${resultData.totalLosingBets}</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: #4a8c4a;">
-        <span>Total Winnings:</span>
-        <span>${resultData.totalWinnings.toLocaleString()}</span>
+        ${resultData.gameResults.matchResult} |
+        ${resultData.gameResults.totalResult} | 
+        ${resultData.gameResults.parityResult}
       </div>
     `;
 
@@ -1521,7 +1496,6 @@ function showBettingResults(resultData) {
     // assemble all elements
     resultsContainer.appendChild(title);
     resultsContainer.appendChild(gameResultsDiv);
-    resultsContainer.appendChild(summaryDiv);
     resultsContainer.appendChild(detailsDiv);
     resultsContainer.appendChild(confirmButton);
 
